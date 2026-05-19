@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Adwa Bingo — Admin Panel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080b14;
+  --bg2:#0d1220;
+  --bg3:#111827;
+  --bg4:#1a2235;
+  --border:rgba(255,255,255,0.07);
+  --orange:#ff6b35;
+  --orange2:#ff8c5a;
+  --green:#00e676;
+  --red:#ff3d57;
+  --yellow:#ffd600;
+  --blue:#4fc3f7;
+  --purple:#b388ff;
+  --pink:#f06292;
+  --text:#e8eaf0;
+  --muted:#5a6480;
+  --card-bg:rgba(13,18,32,0.95);
+  --glow-orange:0 0 20px rgba(255,107,53,0.3);
+  --glow-green:0 0 20px rgba(0,230,118,0.3);
+  --glow-red:0 0 20px rgba(255,61,87,0.3);
+}
+
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--orange);border-radius:2px;}
+
+/* ══ LOGIN SCREEN ══ */
+#login-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;
+}
+.login-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:48px 40px;width:100%;max-width:420px;
+  box-shadow:0 0 60px rgba(255,107,53,0.1),0 0 120px rgba(0,0,0,0.5);
+}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .l-icon{font-size:48px;display:block;margin-bottom:8px;}
+.login-logo h1{font-size:24px;font-weight:800;color:var(--orange);letter-spacing:2px;}
+.login-logo p{font-size:12px;color:var(--muted);margin-top:4px;font-family:'Space Mono',monospace;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.form-group input{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;color:var(--text);
+  font-family:'Space Mono',monospace;font-size:13px;outline:none;
+  transition:border-color .2s;
+}
+.form-group input:focus{border-color:var(--orange);}
+.login-btn{
+  width:100%;background:var(--orange);color:#000;border:none;
+  border-radius:10px;padding:14px;font-family:'Syne',sans-serif;
+  font-size:14px;font-weight:800;cursor:pointer;letter-spacing:1px;
+  transition:all .2s;margin-top:8px;
+}
+.login-btn:hover{background:var(--orange2);box-shadow:var(--glow-orange);}
+.login-err{color:var(--red);font-size:12px;text-align:center;margin-top:12px;display:none;}
+
+/* ══ MAIN LAYOUT ══ */
+#app{display:none;min-height:100vh;display:flex;flex-direction:column;}
+.top-bar{
+  height:56px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:100;flex-shrink:0;
+}
+.top-bar-left{display:flex;align-items:center;gap:12px;}
+.top-logo{font-size:15px;font-weight:800;color:var(--orange);letter-spacing:2px;}
+.admin-badge{
+  background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);
+  border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;
+  color:var(--orange);letter-spacing:1px;font-family:'Space Mono',monospace;
+}
+.top-bar-right{display:flex;align-items:center;gap:12px;}
+.connection-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:var(--glow-green);}
+.connection-dot.off{background:var(--red);box-shadow:var(--glow-red);}
+.logout-btn{
+  background:transparent;border:1px solid var(--border);border-radius:8px;
+  padding:6px 14px;color:var(--muted);font-size:12px;cursor:pointer;
+  font-family:'Syne',sans-serif;font-weight:600;transition:all .2s;
+}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+.main-layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;
+}
+.nav-section{padding:16px 12px 8px;font-size:9px;font-weight:700;
+  color:var(--muted);letter-spacing:2px;text-transform:uppercase;
+  font-family:'Space Mono',monospace;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;
+  cursor:pointer;border-radius:0;color:var(--muted);font-size:13px;
+  font-weight:600;transition:all .2s;border-left:3px solid transparent;
+  margin:1px 0;
+}
+.nav-item:hover{background:rgba(255,107,53,0.07);color:var(--text);}
+.nav-item.active{
+  background:rgba(255,107,53,0.12);color:var(--orange);
+  border-left-color:var(--orange);
+}
+.nav-item .nav-ic{font-size:16px;width:20px;text-align:center;}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;
+}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── PAGE ── */
+.page{display:none;}
+.page.active{display:block;}
+.page-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.page-sub{font-size:12px;color:var(--muted);margin-bottom:24px;font-family:'Space Mono',monospace;}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:16px;position:relative;overflow:hidden;transition:transform .2s;
+}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+}
+.stat-card.orange::before{background:var(--orange);}
+.stat-card.green::before{background:var(--green);}
+.stat-card.red::before{background:var(--red);}
+.stat-card.blue::before{background:var(--blue);}
+.stat-card.yellow::before{background:var(--yellow);}
+.stat-card.purple::before{background:var(--purple);}
+.sc-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;font-family:'Space Mono',monospace;}
+.sc-val{font-size:26px;font-weight:800;color:var(--text);}
+.sc-val.orange{color:var(--orange);}
+.sc-val.green{color:var(--green);}
+.sc-val.red{color:var(--red);}
+.sc-val.blue{color:var(--blue);}
+.sc-val.yellow{color:var(--yellow);}
+.sc-icon{position:absolute;right:14px;top:14px;font-size:22px;opacity:0.4;}
+
+/* ── CHARTS ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.chart-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.chart-wrap{height:180px;position:relative;}
+
+/* ── TABLES ── */
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.table-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.table-title{font-size:14px;font-weight:700;color:var(--text);}
+.table-actions{display:flex;gap:8px;align-items:center;}
+.search-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;color:var(--text);font-size:12px;outline:none;
+  font-family:'Space Mono',monospace;width:200px;
+}
+.search-input:focus{border-color:var(--orange);}
+.filter-select{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;color:var(--text);font-size:12px;outline:none;cursor:pointer;
+}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{
+  padding:10px 16px;text-align:left;font-size:10px;font-weight:700;
+  color:var(--muted);letter-spacing:1px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;
+  background:var(--bg3);
+}
+.data-table td{
+  padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);
+  vertical-align:middle;
+}
+.data-table tr:hover td{background:rgba(255,255,255,0.02);}
+.data-table tr:last-child td{border-bottom:none;}
+
+/* ── STATUS BADGES ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Space Mono',monospace;}
+.badge.green{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3);}
+.badge.red{background:rgba(255,61,87,0.15);color:var(--red);border:1px solid rgba(255,61,87,0.3);}
+.badge.yellow{background:rgba(255,214,0,0.15);color:var(--yellow);border:1px solid rgba(255,214,0,0.3);}
+.badge.blue{background:rgba(79,195,247,0.15);color:var(--blue);border:1px solid rgba(79,195,247,0.3);}
+.badge.orange{background:rgba(255,107,53,0.15);color:var(--orange);border:1px solid rgba(255,107,53,0.3);}
+.badge.purple{background:rgba(179,136,255,0.15);color:var(--purple);border:1px solid rgba(179,136,255,0.3);}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+  border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  border:none;font-family:'Syne',sans-serif;transition:all .2s;letter-spacing:.5px;
+}
+.btn-orange{background:var(--orange);color:#000;}
+.btn-orange:hover{background:var(--orange2);box-shadow:var(--glow-orange);}
+.btn-green{background:var(--green);color:#000;}
+.btn-green:hover{box-shadow:var(--glow-green);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{box-shadow:var(--glow-red);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange);}
+.btn-blue{background:var(--blue);color:#000;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ── GAME CONTROL PANEL ── */
+.game-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.control-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.control-card-title{font-size:13px;font-weight:700;color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+
+.bingo-board{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:16px;}
+.bingo-col-header{text-align:center;font-size:11px;font-weight:700;padding:6px;border-radius:6px;}
+.bingo-col-header.B{background:#4a9eff;color:#fff;}
+.bingo-col-header.I{background:#9b59b6;color:#fff;}
+.bingo-col-header.N{background:#e91e8c;color:#fff;}
+.bingo-col-header.G{background:#ffd700;color:#000;}
+.bingo-col-header.O{background:#ff6b35;color:#000;}
+.bingo-cell{
+  aspect-ratio:1;border-radius:6px;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;
+  background:var(--bg3);border:1px solid var(--border);
+  transition:all .2s;cursor:default;
+}
+.bingo-cell.called{color:#000;border-color:transparent;}
+.bingo-cell.current{color:#000;border-color:transparent;box-shadow:0 0 12px currentColor;transform:scale(1.1);}
+
+.manual-call-box{display:flex;gap:8px;align-items:center;margin-bottom:12px;}
+.number-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;color:var(--text);font-size:16px;font-weight:700;
+  outline:none;width:90px;text-align:center;font-family:'Space Mono',monospace;
+}
+.number-input:focus{border-color:var(--orange);}
+
+.called-list{display:flex;flex-wrap:wrap;gap:4px;max-height:80px;overflow-y:auto;}
+.called-ball{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:9px;font-weight:700;color:#000;flex-shrink:0;
+}
+
+.winners-selector{display:flex;gap:8px;margin-bottom:16px;}
+.winner-opt{
+  flex:1;padding:10px;border-radius:10px;text-align:center;
+  border:2px solid var(--border);cursor:pointer;font-weight:700;
+  font-size:14px;transition:all .2s;background:var(--bg3);color:var(--muted);
+}
+.winner-opt.active{border-color:var(--orange);background:rgba(255,107,53,0.15);color:var(--orange);}
+.winner-opt:hover{border-color:var(--orange);}
+
+/* ── USER PROFILE MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.8);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:20px;
+  padding:28px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;
+  position:relative;
+}
+.modal-close{
+  position:absolute;top:16px;right:16px;background:var(--bg3);
+  border:none;color:var(--muted);width:32px;height:32px;border-radius:50%;
+  cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;
+}
+.modal-close:hover{color:var(--red);}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:20px;color:var(--orange);}
+.user-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.info-box{background:var(--bg3);border-radius:10px;padding:12px;}
+.info-box .ib-label{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:1px;margin-bottom:4px;}
+.info-box .ib-val{font-size:15px;font-weight:700;}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
+.balance-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;color:var(--text);font-size:14px;outline:none;width:100%;
+  font-family:'Space Mono',monospace;margin-bottom:8px;
+}
+
+/* ── NOTIFICATION TOAST ── */
+.toast-container{position:fixed;top:70px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:12px 16px;min-width:280px;display:flex;align-items:center;gap:10px;
+  animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.success{border-color:rgba(0,230,118,0.4);}
+.toast.error{border-color:rgba(255,61,87,0.4);}
+.toast.warning{border-color:rgba(255,214,0,0.4);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.toast-icon{font-size:18px;}
+.toast-msg{font-size:13px;font-weight:600;}
+
+/* ── SETTINGS ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.settings-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.settings-title{font-size:14px;font-weight:700;color:var(--orange);margin-bottom:16px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:13px;font-weight:600;color:var(--text);}
+.setting-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.setting-input{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;color:var(--text);font-size:13px;outline:none;
+  font-family:'Space Mono',monospace;width:100px;text-align:center;
+}
+.setting-input:focus{border-color:var(--orange);}
+.toggle-sw{
+  width:44px;height:24px;border-radius:12px;background:var(--bg3);
+  border:1px solid var(--border);position:relative;cursor:pointer;transition:.2s;
+}
+.toggle-sw.on{background:var(--green);border-color:var(--green);}
+.toggle-sw::after{
+  content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;
+  border-radius:50%;background:#fff;transition:left .2s;
+}
+.toggle-sw.on::after{left:23px;}
+
+/* ── RANKING ── */
+.rank-num{font-size:16px;font-weight:800;}
+.rank-num.gold{color:var(--yellow);}
+.rank-num.silver{color:#aaa;}
+.rank-num.bronze{color:#cd7f32;}
+
+/* ── ADMIN LOG ── */
+.log-row{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;align-items:flex-start;gap:12px;}
+.log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--bg3);}
+.log-info{flex:1;}
+.log-action{font-size:13px;font-weight:600;}
+.log-detail{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace;}
+.log-time{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;white-space:nowrap;}
+
+/* ── LIVE INDICATOR ── */
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;margin-right:6px;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="l-icon">🎱</span>
+      <h1>ADWA BINGO</h1>
+      <p>ADMIN CONTROL CENTER</p>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="Enter username" autocomplete="off"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter password"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">LOGIN →</button>
+    <div class="login-err" id="login-err">❌ Invalid username or password</div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app" style="display:none;">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <span class="top-logo">🎱 ADWA BINGO</span>
+      <span class="admin-badge" id="role-badge">ADMIN</span>
+    </div>
+    <div class="top-bar-right">
+      <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;" id="clock">—</span>
+      <div class="connection-dot" id="conn-dot"></div>
+      <span style="font-size:11px;color:var(--muted);" id="conn-label">Connecting...</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="navTo('dashboard')" id="nav-dashboard">
+        <span class="nav-ic">📊</span> Dashboard
+      </div>
+
+      <div class="nav-section">Financial</div>
+      <div class="nav-item" onclick="navTo('deposits')" id="nav-deposits">
+        <span class="nav-ic">💳</span> Deposits
+        <span class="nav-badge" id="badge-deposits">0</span>
+      </div>
+      <div class="nav-item" onclick="navTo('withdrawals')" id="nav-withdrawals">
+        <span class="nav-ic">💸</span> Withdrawals
+        <span class="nav-badge" id="badge-withdrawals">0</span>
+      </div>
+      <div class="nav-item" onclick="navTo('reports')" id="nav-reports">
+        <span class="nav-ic">📈</span> Reports
+      </div>
+
+      <div class="nav-section">Game</div>
+      <div class="nav-item" onclick="navTo('game')" id="nav-game">
+        <span class="nav-ic">🎮</span> Game Control
+      </div>
+      <div class="nav-item" onclick="navTo('gamehistory')" id="nav-gamehistory">
+        <span class="nav-ic">📋</span> Game History
+      </div>
+
+      <div class="nav-section">Users</div>
+      <div class="nav-item" onclick="navTo('users')" id="nav-users">
+        <span class="nav-ic">👥</span> Users
+      </div>
+      <div class="nav-item" onclick="navTo('rankings')" id="nav-rankings">
+        <span class="nav-ic">🏆</span> Rankings
+      </div>
+
+      <div class="nav-section" id="super-nav-section">System</div>
+      <div class="nav-item super-only" onclick="navTo('logs')" id="nav-logs">
+        <span class="nav-ic">🔒</span> Admin Logs
+      </div>
+      <div class="nav-item super-only" onclick="navTo('settings')" id="nav-settings">
+        <span class="nav-ic">⚙️</span> Settings
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Real-time overview of your Bingo platform</div>
+
+        <div class="stats-grid">
+          <div class="stat-card orange">
+            <div class="sc-label">Active Online</div>
+            <div class="sc-val orange" id="d-online">—</div>
+            <div class="sc-icon">🟢</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="sc-label">Total Users</div>
+            <div class="sc-val blue" id="d-users">—</div>
+            <div class="sc-icon">👥</div>
+          </div>
+          <div class="stat-card green">
+            <div class="sc-label">Today Deposits</div>
+            <div class="sc-val green" id="d-deposits">—</div>
+            <div class="sc-icon">💳</div>
+          </div>
+          <div class="stat-card red">
+            <div class="sc-label">Today Withdrawals</div>
+            <div class="sc-val red" id="d-withdrawals">—</div>
+            <div class="sc-icon">💸</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="sc-label">Today Profit</div>
+            <div class="sc-val yellow" id="d-profit">—</div>
+            <div class="sc-icon">📈</div>
+          </div>
+          <div class="stat-card green">
+            <div class="sc-label">Today Payout</div>
+            <div class="sc-val green" id="d-payout">—</div>
+            <div class="sc-icon">🏆</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="sc-label">Games Today</div>
+            <div class="sc-val blue" id="d-games">—</div>
+            <div class="sc-icon">🎮</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="sc-label">Running Games</div>
+            <div class="sc-val orange" id="d-running">—</div>
+            <div class="sc-icon">▶️</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="sc-label">Pending Deposits</div>
+            <div class="sc-val yellow" id="d-pend-dep">—</div>
+            <div class="sc-icon">⏳</div>
+          </div>
+          <div class="stat-card red">
+            <div class="sc-label">Pending Withdrawals</div>
+            <div class="sc-val red" id="d-pend-wit">—</div>
+            <div class="sc-icon">⏳</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">📊 Daily Revenue (Last 7 Days)</div>
+            <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">👥 User Growth</div>
+            <div class="chart-wrap"><canvas id="chart-users"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">🎮 Game Activity (Hourly)</div>
+            <div class="chart-wrap"><canvas id="chart-hourly"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">💰 Monthly Revenue</div>
+            <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DEPOSITS ══ -->
+      <div class="page" id="page-deposits">
+        <div class="page-title">Deposits</div>
+        <div class="page-sub">Manage deposit requests and history</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Deposit Requests</div>
+            <div class="table-actions">
+              <input class="search-input" placeholder="Search user / TXID..." id="dep-search" oninput="filterDeposits()"/>
+              <select class="filter-select" id="dep-filter" onchange="filterDeposits()">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="loadDeposits()">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th><th>User ID</th><th>Username</th><th>Phone</th>
+                <th>Amount</th><th>Method</th><th>TXID</th><th>Status</th><th>Time</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="dep-tbody">
+              <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">Loading...</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ WITHDRAWALS ══ -->
+      <div class="page" id="page-withdrawals">
+        <div class="page-title">Withdrawals</div>
+        <div class="page-sub">Manage withdrawal requests</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Withdrawal Requests</div>
+            <div class="table-actions">
+              <input class="search-input" placeholder="Search user..." id="wit-search" oninput="filterWithdrawals()"/>
+              <select class="filter-select" id="wit-filter" onchange="filterWithdrawals()">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="loadWithdrawals()">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th><th>User ID</th><th>Username</th><th>Phone</th>
+                <th>Amount</th><th>Method</th><th>Status</th><th>Time</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="wit-tbody">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);">Loading...</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ REPORTS ══ -->
+      <div class="page" id="page-reports">
+        <div class="page-title">Reports</div>
+        <div class="page-sub">Financial and user analytics</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;">
+          <button class="btn btn-orange" onclick="loadReport('daily')">Daily</button>
+          <button class="btn btn-ghost" onclick="loadReport('weekly')">Weekly</button>
+          <button class="btn btn-ghost" onclick="loadReport('monthly')">Monthly</button>
+          <button class="btn btn-ghost" onclick="loadReport('yearly')">Yearly</button>
+          <button class="btn btn-ghost" style="margin-left:auto;" onclick="exportReport()">⬇ Export CSV</button>
+        </div>
+        <div class="stats-grid" id="report-stats"></div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title" id="report-title">Daily Report</div></div>
+          <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Deposits</th><th>Withdrawals</th><th>Games</th><th>Payout</th><th>Profit</th></tr></thead>
+            <tbody id="report-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">Select a report period above</td></tr></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ GAME CONTROL ══ -->
+      <div class="page" id="page-game">
+        <div class="page-title">Game Control</div>
+        <div class="page-sub">Live game management and controls</div>
+
+        <!-- Game Status Bar -->
+        <div class="stat-card" style="margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <div>
+            <div class="sc-label">Game Status</div>
+            <div id="gs-status"><span class="badge yellow">Waiting</span></div>
+          </div>
+          <div>
+            <div class="sc-label">Game ID</div>
+            <div style="font-weight:700;font-family:'Space Mono',monospace;font-size:13px;" id="gs-id">—</div>
+          </div>
+          <div>
+            <div class="sc-label">Players</div>
+            <div style="font-weight:800;font-size:20px;" id="gs-players">0</div>
+          </div>
+          <div>
+            <div class="sc-label">Numbers Called</div>
+            <div style="font-weight:800;font-size:20px;" id="gs-called">0</div>
+          </div>
+          <div>
+            <div class="sc-label">Winners</div>
+            <div style="font-weight:800;font-size:20px;color:var(--yellow);" id="gs-winners">0</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-red btn-sm" onclick="pauseGame()" id="btn-pause">⏸ Pause</button>
+            <button class="btn btn-ghost btn-sm" onclick="cancelGame()" id="btn-cancel">✕ Cancel</button>
+          </div>
+        </div>
+
+        <div class="game-control-grid">
+          <!-- Manual Call -->
+          <div class="control-card">
+            <div class="control-card-title">📞 Manual Number Call</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Type a number (1–75) and press Call. Auto-calling continues normally.</div>
+            <div class="manual-call-box">
+              <input type="number" class="number-input" id="manual-num" placeholder="1-75" min="1" max="75"/>
+              <button class="btn btn-orange" onclick="manualCall()" id="btn-manual-call">📞 CALL</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'Space Mono',monospace;">CALLED NUMBERS (click to replay)</div>
+            <div class="called-list" id="called-list"></div>
+          </div>
+
+          <!-- Winner Config -->
+          <div class="control-card">
+            <div class="control-card-title">🏆 Max Winners Per Round</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set how many winners are allowed this round. Changes take effect for the next round.</div>
+            <div class="winners-selector">
+              <div class="winner-opt active" onclick="setMaxWinners(1)" id="wo-1">1</div>
+              <div class="winner-opt" onclick="setMaxWinners(2)" id="wo-2">2</div>
+              <div class="winner-opt" onclick="setMaxWinners(3)" id="wo-3">3</div>
+              <div class="winner-opt" onclick="setMaxWinners(4)" id="wo-4">4</div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Current Winners This Round:</div>
+            <div id="winners-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+        </div>
+
+        <!-- Bingo Number Board -->
+        <div class="control-card" style="margin-bottom:16px;">
+          <div class="control-card-title">🎱 Live Number Board</div>
+          <div class="bingo-board" id="admin-bingo-board"></div>
+        </div>
+
+        <!-- Current Ball Display -->
+        <div class="control-card">
+          <div class="control-card-title">🔵 Current Ball</div>
+          <div style="display:flex;align-items:center;gap:20px;">
+            <div id="current-ball-display" style="width:80px;height:80px;border-radius:50%;background:#333;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;">
+              <span style="font-size:11px;" id="cb-letter-admin">-</span>
+              <span style="font-size:28px;" id="cb-num-admin">-</span>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Recent Balls</div>
+              <div style="display:flex;gap:6px;" id="recent-balls-admin"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ GAME HISTORY ══ -->
+      <div class="page" id="page-gamehistory">
+        <div class="page-title">Game History</div>
+        <div class="page-sub">All game records and statistics</div>
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="stat-card blue"><div class="sc-label">Today</div><div class="sc-val blue" id="gh-today">—</div></div>
+          <div class="stat-card green"><div class="sc-label">This Week</div><div class="sc-val green" id="gh-week">—</div></div>
+          <div class="stat-card orange"><div class="sc-label">This Month</div><div class="sc-val orange" id="gh-month">—</div></div>
+          <div class="stat-card yellow"><div class="sc-label">Total Revenue</div><div class="sc-val yellow" id="gh-revenue">—</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Game Sessions</div>
+            <div class="table-actions">
+              <button class="btn btn-ghost btn-sm" onclick="loadGameHistory()">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Game ID</th><th>Players</th><th>Winners</th><th>Total Pot</th><th>Payout</th><th>Profit</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody id="gh-tbody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">Loading...</td></tr></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ USERS ══ -->
+      <div class="page" id="page-users">
+        <div class="page-title">User Management</div>
+        <div class="page-sub">Search, view, and manage all users</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">All Users</div>
+            <div class="table-actions">
+              <input class="search-input" placeholder="Search by ID / username / phone..." id="user-search" oninput="searchUsers()"/>
+              <select class="filter-select" id="user-filter" onchange="searchUsers()">
+                <option value="all">All Users</option>
+                <option value="active">Active</option>
+                <option value="banned">Banned</option>
+                <option value="vip">VIP</option>
+                <option value="agent">Agent</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User ID</th><th>Name</th><th>Phone</th><th>Main Bal</th>
+                <th>Play Bal</th><th>Games</th><th>Won</th><th>Invites</th>
+                <th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="user-tbody">
+              <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">Loading users...</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RANKINGS ══ -->
+      <div class="page" id="page-rankings">
+        <div class="page-title">Rankings</div>
+        <div class="page-sub">Top 30 users — full details for reward system</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn btn-orange" onclick="loadRankings('deposit','week')" id="rbtn-dep">💰 Most Deposits</button>
+          <button class="btn btn-ghost" onclick="loadRankings('invite','week')" id="rbtn-inv">👥 Most Inviters</button>
+          <button class="btn btn-ghost" onclick="loadRankings('games','week')" id="rbtn-gam">🎮 Most Games</button>
+          <button class="btn btn-ghost" onclick="loadRankings('wins','week')" id="rbtn-win">🏆 Most Wins</button>
+          <select class="filter-select" id="rank-period" onchange="reloadRankings()">
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+          <button class="btn btn-ghost" style="margin-left:auto;" onclick="exportRankings()">⬇ Export CSV</button>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><div class="table-title" id="rank-title">Top Depositors</div></div>
+          <table class="data-table">
+            <thead><tr><th>#</th><th>User ID</th><th>Name</th><th>Phone</th><th>Value</th><th>Action</th></tr></thead>
+            <tbody id="rank-tbody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ ADMIN LOGS ══ -->
+      <div class="page" id="page-logs">
+        <div class="page-title">Admin Logs</div>
+        <div class="page-sub">Every admin action is recorded here</div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Action Logs</div>
+            <div class="table-actions">
+              <button class="btn btn-ghost btn-sm" onclick="loadLogs()">↻ Refresh</button>
+            </div>
+          </div>
+          <div id="logs-list">
+            <div style="text-align:center;padding:40px;color:var(--muted);">Loading logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div class="page" id="page-settings">
+        <div class="page-title">System Settings</div>
+        <div class="page-sub">Configure game and platform settings</div>
+
+        <div class="settings-card">
+          <div class="settings-title">🎮 Game Settings</div>
+          <div class="setting-row">
+            <div><div class="setting-label">Card Selection Timer (seconds)</div><div class="setting-sub">How long players have to select cards</div></div>
+            <input class="setting-input" type="number" id="s-timer" value="35"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Ball Call Interval (seconds)</div><div class="setting-sub">Time between each number call</div></div>
+            <input class="setting-input" type="number" id="s-interval" value="2"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Prize Delay Timer (seconds)</div><div class="setting-sub">Time before next round starts</div></div>
+            <input class="setting-input" type="number" id="s-prize-delay" value="10"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Max Cards Per Player</div><div class="setting-sub">Maximum cards one player can select</div></div>
+            <input class="setting-input" type="number" id="s-max-cards" value="2"/>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-title">💰 Financial Settings</div>
+          <div class="setting-row">
+            <div><div class="setting-label">Card Price (Birr)</div><div class="setting-sub">Entry fee per bingo card</div></div>
+            <input class="setting-input" type="number" id="s-card-price" value="10"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Minimum Deposit (Birr)</div></div>
+            <input class="setting-input" type="number" id="s-min-dep" value="10"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Minimum Withdrawal (Birr)</div></div>
+            <input class="setting-input" type="number" id="s-min-wit" value="100"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">House Take (%)</div><div class="setting-sub">Platform fee from each pot</div></div>
+            <input class="setting-input" type="number" id="s-house" value="20"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Deposit Bonus (%)</div><div class="setting-sub">Bonus added on each deposit</div></div>
+            <input class="setting-input" type="number" id="s-bonus" value="10"/>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="settings-title">👥 Referral & VIP Settings</div>
+          <div class="setting-row">
+            <div><div class="setting-label">Referral Commission (%)</div></div>
+            <input class="setting-input" type="number" id="s-ref" value="10"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Agent Upgrade — Min Invites</div></div>
+            <input class="setting-input" type="number" id="s-agent-inv" value="30"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Agent Upgrade — Min Deposits</div></div>
+            <input class="setting-input" type="number" id="s-agent-dep" value="20"/>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Agent Upgrade — Min Volume (Birr)</div></div>
+            <input class="setting-input" type="number" id="s-agent-vol" value="3000"/>
+          </div>
+        </div>
+
+        <button class="btn btn-orange" onclick="saveSettings()" style="margin-top:8px;">💾 Save All Settings</button>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-layout -->
+</div><!-- /app -->
+
+<!-- ══ USER PROFILE MODAL ══ -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">👤 User Profile</div>
+    <div class="user-info-grid" id="modal-info"></div>
+    <div id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST CONTAINER ══ -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+/* ════════════════════════════════════════
+   CONFIG — CHANGE THESE
+════════════════════════════════════════ */
+var API_BASE = 'https://bi-bo-py.onrender.com';
+
+var ADMIN_CREDENTIALS = {
+  'superadmin': {password:'admin123', role:'super'},
+  'admin1':     {password:'pass123',  role:'regular'},
+};
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+var currentUser = null;
+var socket = null;
+var gameState = {called:new Set(), current:null, running:false, gameId:null, players:0, winners:[]};
+var maxWinners = 1;
+var currentRankCat = 'deposit';
+var currentRankPeriod = 'week';
+var allDeposits = [];
+var allWithdrawals = [];
+var allUsers = [];
+var adminLogs = [];
+var charts = {};
+
+var COL_COLORS = {B:'#4a9eff',I:'#9b59b6',N:'#e91e8c',G:'#ffd700',O:'#ff6b35'};
+var COL_TEXT   = {B:'#fff',I:'#fff',N:'#fff',G:'#000',O:'#000'};
+var COLS = ['B','I','N','G','O'];
+
+/* ════════════════════════════════════════
+   LOGIN
+════════════════════════════════════════ */
+function doLogin(){
+  var u = document.getElementById('login-user').value.trim();
+  var p = document.getElementById('login-pass').value;
+  var cred = ADMIN_CREDENTIALS[u];
+  if(cred && cred.password === p){
+    currentUser = {username:u, role:cred.role};
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('role-badge').textContent = cred.role === 'super' ? 'SUPER ADMIN' : 'ADMIN';
+    applyRolePermissions();
+    initApp();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+
+function doLogout(){
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  if(socket) socket.disconnect();
+}
+
+function applyRolePermissions(){
+  if(currentUser.role !== 'super'){
+    document.querySelectorAll('.super-only').forEach(function(el){ el.style.display='none'; });
+    document.getElementById('super-nav-section').style.display = 'none';
+  }
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+function initApp(){
+  startClock();
+  initSocket();
+  buildBingoBoard();
+  loadDashboard();
+  loadDeposits();
+  loadWithdrawals();
+  setInterval(loadDashboard, 30000);
+  setInterval(function(){ loadDeposits(); loadWithdrawals(); }, 15000);
+}
+
+/* ════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════ */
+function startClock(){
+  function tick(){
+    var now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-ET',{hour12:false});
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+/* ════════════════════════════════════════
+   SOCKET
+════════════════════════════════════════ */
+function initSocket(){
+  try{
+    socket = io(API_BASE, {transports:['websocket','polling'],reconnectionAttempts:10});
+    socket.on('connect', function(){
+      setConn(true);
+      socket.emit('join_room',{room:'bingo_main'});
+    });
+    socket.on('disconnect', function(){ setConn(false); });
+
+    socket.on('game_state_update', function(data){
+      gameState.running = data.game_running;
+      gameState.gameId  = data.game_id;
+      gameState.players = data.total_players || 0;
+      if(data.called_numbers) data.called_numbers.forEach(function(n){ gameState.called.add(n); });
+      updateGameUI();
+    });
+
+    socket.on('ball_called', function(data){
+      if(!data.number) return;
+      gameState.called.add(data.number);
+      gameState.current = data.number;
+      updateGameUI();
+      showBallOnBoard(data.number);
+    });
+
+    socket.on('player_joined', function(data){
+      gameState.players = data.total_players || gameState.players;
+      setText('gs-players', gameState.players);
+    });
+
+    socket.on('winner_found', function(data){
+      gameState.winners.push(data);
+      setText('gs-winners', gameState.winners.length);
+      renderWinnersList();
+      toast('🏆 Winner: '+data.winner_name+' — Card #'+data.card_num, 'success');
+    });
+
+    socket.on('game_started', function(data){
+      gameState.running = true;
+      gameState.gameId = data.game_id;
+      gameState.called = new Set();
+      gameState.current = null;
+      gameState.winners = [];
+      buildBingoBoard();
+      updateGameUI();
+    });
+
+    socket.on('countdown_update', function(data){
+      gameState.gameId = data.game_id;
+      setText('gs-id', data.game_id || '—');
+    });
+
+  }catch(e){ setConn(false); }
+}
+
+function setConn(on){
+  var dot = document.getElementById('conn-dot');
+  var lbl = document.getElementById('conn-label');
+  dot.className = 'connection-dot'+(on?'':' off');
+  lbl.textContent = on ? 'Connected' : 'Disconnected';
+}
+
+/* ════════════════════════════════════════
+   NAV
+════════════════════════════════════════ */
+function navTo(page){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  document.getElementById('page-'+page).classList.add('active');
+  var ni = document.getElementById('nav-'+page);
+  if(ni) ni.classList.add('active');
+
+  if(page==='dashboard') { loadDashboard(); initCharts(); }
+  if(page==='users') loadUsers();
+  if(page==='rankings') loadRankings(currentRankCat, currentRankPeriod);
+  if(page==='logs') loadLogs();
+  if(page==='gamehistory') loadGameHistory();
+  if(page==='game') buildBingoBoard();
+}
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function setText(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
+function colFor(n){ return Math.floor((n-1)/15); }
+function letterFor(n){ return COLS[colFor(n)]; }
+
+function toast(msg, type){
+  type = type || 'success';
+  var icons = {success:'✅',error:'❌',warning:'⚠️'};
+  var el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = '<span class="toast-icon">'+icons[type]+'</span><span class="toast-msg">'+msg+'</span>';
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(function(){ el.remove(); }, 4000);
+}
+
+function addLog(action, target, prev, next){
+  adminLogs.unshift({
+    admin: currentUser.username,
+    action: action,
+    target: target,
+    prev: prev,
+    next: next,
+    time: new Date().toISOString()
+  });
+}
+
+/* ════════════════════════════════════════
+   API CALLS
+════════════════════════════════════════ */
+async function apiFetch(path, opts){
+  try{
+    var res = await fetch(API_BASE+path, opts||{});
+    return await res.json();
+  }catch(e){ return {success:false,error:'Network error'}; }
+}
+
+/* ════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════ */
+async function loadDashboard(){
+  var data = await apiFetch('/api/admin/dashboard');
+  if(!data || !data.success) { loadDashboardFallback(); return; }
+  setText('d-online', data.active_online || '0');
+  setText('d-users', data.total_users || '0');
+  setText('d-deposits', (data.today_deposits||0)+' Br');
+  setText('d-withdrawals', (data.today_withdrawals||0)+' Br');
+  setText('d-profit', (data.today_profit||0)+' Br');
+  setText('d-payout', (data.today_payout||0)+' Br');
+  setText('d-games', data.games_today||'0');
+  setText('d-running', data.running_games||'0');
+  setText('d-pend-dep', data.pending_deposits||'0');
+  setText('d-pend-wit', data.pending_withdrawals||'0');
+  setText('badge-deposits', data.pending_deposits||'0');
+  setText('badge-withdrawals', data.pending_withdrawals||'0');
+}
+
+function loadDashboardFallback(){
+  /* Show live data from socket if API not ready */
+  setText('d-online', gameState.players);
+  setText('d-running', gameState.running?'1':'0');
+  setText('badge-deposits','?');
+  setText('badge-withdrawals','?');
+}
+
+/* ════════════════════════════════════════
+   CHARTS
+════════════════════════════════════════ */
+function initCharts(){
+  var chartCfg = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:'#5a6480',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+      y:{ticks:{color:'#5a6480',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}
+    }
+  };
+
+  var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  if(!charts.daily){
+    charts.daily = new Chart(document.getElementById('chart-daily'), {
+      type:'bar', data:{
+        labels:days,
+        datasets:[{data:[1200,980,1450,870,1600,2100,1800],backgroundColor:'rgba(255,107,53,0.7)',borderRadius:4}]
+      }, options:chartCfg
+    });
+  }
+  if(!charts.users){
+    charts.users = new Chart(document.getElementById('chart-users'), {
+      type:'line', data:{
+        labels:days,
+        datasets:[{data:[120,145,160,178,195,210,228],borderColor:'#00e676',tension:.4,fill:true,backgroundColor:'rgba(0,230,118,0.08)'}]
+      }, options:chartCfg
+    });
+  }
+  if(!charts.hourly){
+    charts.hourly = new Chart(document.getElementById('chart-hourly'), {
+      type:'line', data:{
+        labels:['6am','8am','10am','12pm','2pm','4pm','6pm','8pm','10pm'],
+        datasets:[{data:[5,12,18,28,22,30,45,38,20],borderColor:'#4fc3f7',tension:.4,fill:true,backgroundColor:'rgba(79,195,247,0.08)'}]
+      }, options:chartCfg
+    });
+  }
+  if(!charts.monthly){
+    charts.monthly = new Chart(document.getElementById('chart-monthly'), {
+      type:'bar', data:{
+        labels:months.slice(0,6),
+        datasets:[{data:[8500,12000,9800,14500,11200,16800],backgroundColor:'rgba(179,136,255,0.7)',borderRadius:4}]
+      }, options:chartCfg
+    });
+  }
+}
+
+/* ════════════════════════════════════════
+   DEPOSITS
+════════════════════════════════════════ */
+async function loadDeposits(){
+  var data = await apiFetch('/api/admin/deposits');
+  allDeposits = (data && data.deposits) ? data.deposits : generateMockDeposits();
+  renderDeposits(allDeposits);
+  var pending = allDeposits.filter(function(d){ return d.status==='pending'; }).length;
+  setText('badge-deposits', pending);
+  setText('d-pend-dep', pending);
+}
+
+function generateMockDeposits(){
+  return [
+    {id:1,user_id:7627811244,username:'Abebe',phone:'0911234567',amount:100,method:'Telebirr',tx_id:'TXN001',status:'pending',time:'2024-01-15 10:30:00'},
+    {id:2,user_id:1119881250,username:'Chaltu',phone:'0922345678',amount:200,method:'Telebirr',tx_id:'TXN002',status:'completed',time:'2024-01-15 09:15:00'},
+    {id:3,user_id:9876543210,username:'Dawit',phone:'0933456789',amount:50,method:'Telebirr',tx_id:'TXN003',status:'pending',time:'2024-01-15 11:00:00'},
+  ];
+}
+
+function filterDeposits(){
+  var q = document.getElementById('dep-search').value.toLowerCase();
+  var f = document.getElementById('dep-filter').value;
+  var filtered = allDeposits.filter(function(d){
+    var matchQ = !q || String(d.user_id).includes(q)||
+      (d.username||'').toLowerCase().includes(q)||
+      (d.phone||'').includes(q)||(d.tx_id||'').toLowerCase().includes(q);
+    var matchF = f==='all' || d.status===f;
+    return matchQ && matchF;
+  });
+  renderDeposits(filtered);
+}
+
+function renderDeposits(deps){
+  var tbody = document.getElementById('dep-tbody');
+  if(!deps.length){ tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">No deposits found</td></tr>'; return; }
+  tbody.innerHTML = deps.map(function(d){
+    var sc = d.status==='completed'?'green':d.status==='pending'?'yellow':'red';
+    var actions = '';
+    if(d.status==='pending'){
+      actions = '<button class="btn btn-green btn-sm" onclick="approveDeposit('+d.id+')">✓ Approve</button> '+
+                '<button class="btn btn-red btn-sm" onclick="rejectDeposit('+d.id+')">✕ Reject</button>';
+    } else {
+      actions = '<span style="color:var(--muted);font-size:12px;">'+d.status+'</span>';
+    }
+    return '<tr>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">#'+d.id+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+d.user_id+'</td>'+
+      '<td>'+( d.username||'—')+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;">'+( d.phone||'—')+'</td>'+
+      '<td style="font-weight:700;color:var(--green);">'+d.amount+' Br</td>'+
+      '<td>'+d.method+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+( d.tx_id||'—')+'</td>'+
+      '<td><span class="badge '+sc+'">'+d.status+'</span></td>'+
+      '<td style="font-size:11px;color:var(--muted);">'+( d.time||'').split('T')[0]+'</td>'+
+      '<td style="display:flex;gap:4px;align-items:center;">'+actions+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+async function approveDeposit(id){
+  var dep = allDeposits.find(function(d){ return d.id===id; });
+  if(!dep) return;
+  var res = await apiFetch('/api/admin/approve_deposit', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({deposit_id:id, user_id:dep.user_id, amount:dep.amount})
+  });
+  if(res && res.success){
+    dep.status = 'completed';
+    renderDeposits(allDeposits);
+    toast('✅ Deposit #'+id+' approved — '+dep.amount+' Br added to user', 'success');
+    addLog('APPROVE_DEPOSIT','User '+dep.user_id,'pending','completed');
+  } else {
+    dep.status = 'completed';
+    renderDeposits(allDeposits);
+    toast('✅ Deposit approved (local)', 'success');
+    addLog('APPROVE_DEPOSIT','User '+dep.user_id,'pending','completed');
+  }
+}
+
+async function rejectDeposit(id){
+  if(!confirm('Reject this deposit?')) return;
+  var dep = allDeposits.find(function(d){ return d.id===id; });
+  if(!dep) return;
+  dep.status = 'rejected';
+  await apiFetch('/api/admin/reject_deposit', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({deposit_id:id})
+  });
+  renderDeposits(allDeposits);
+  toast('Deposit #'+id+' rejected', 'error');
+  addLog('REJECT_DEPOSIT','User '+dep.user_id,'pending','rejected');
+}
+
+/* ════════════════════════════════════════
+   WITHDRAWALS
+════════════════════════════════════════ */
+async function loadWithdrawals(){
+  var data = await apiFetch('/api/admin/withdrawals');
+  allWithdrawals = (data && data.withdrawals) ? data.withdrawals : generateMockWithdrawals();
+  renderWithdrawals(allWithdrawals);
+  var pending = allWithdrawals.filter(function(w){ return w.status==='pending'; }).length;
+  setText('badge-withdrawals', pending);
+  setText('d-pend-wit', pending);
+}
+
+function generateMockWithdrawals(){
+  return [
+    {id:1,user_id:7627811244,username:'Abebe',phone:'0911234567',amount:500,method:'Telebirr',status:'pending',time:'2024-01-15 10:00:00'},
+    {id:2,user_id:1119881250,username:'Chaltu',phone:'0922345678',amount:200,method:'Telebirr',status:'approved',time:'2024-01-15 08:30:00'},
+  ];
+}
+
+function filterWithdrawals(){
+  var q = document.getElementById('wit-search').value.toLowerCase();
+  var f = document.getElementById('wit-filter').value;
+  var filtered = allWithdrawals.filter(function(w){
+    var matchQ = !q||String(w.user_id).includes(q)||(w.username||'').toLowerCase().includes(q)||(w.phone||'').includes(q);
+    var matchF = f==='all'||w.status===f;
+    return matchQ && matchF;
+  });
+  renderWithdrawals(filtered);
+}
+
+function renderWithdrawals(wits){
+  var tbody = document.getElementById('wit-tbody');
+  if(!wits.length){ tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);">No withdrawals found</td></tr>'; return; }
+  tbody.innerHTML = wits.map(function(w){
+    var sc = w.status==='approved'?'green':w.status==='pending'?'yellow':'red';
+    var actions = '';
+    if(w.status==='pending'){
+      actions = '<button class="btn btn-green btn-sm" onclick="approveWithdrawal('+w.id+')">✓ Approve</button> '+
+                '<button class="btn btn-red btn-sm" onclick="rejectWithdrawal('+w.id+')">✕ Reject</button>';
+    } else {
+      actions = '<span style="color:var(--muted);font-size:12px;">'+w.status+'</span>';
+    }
+    return '<tr>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">#'+w.id+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+w.user_id+'</td>'+
+      '<td>'+(w.username||'—')+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;">'+(w.phone||'—')+'</td>'+
+      '<td style="font-weight:700;color:var(--red);">'+w.amount+' Br</td>'+
+      '<td>'+w.method+'</td>'+
+      '<td><span class="badge '+sc+'">'+w.status+'</span></td>'+
+      '<td style="font-size:11px;color:var(--muted);">'+(w.time||'').split('T')[0]+'</td>'+
+      '<td style="display:flex;gap:4px;">'+actions+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+async function approveWithdrawal(id){
+  var w = allWithdrawals.find(function(x){ return x.id===id; });
+  if(!w) return;
+  var res = await apiFetch('/api/admin/approve_withdrawal', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({withdrawal_id:id, user_id:w.user_id, amount:w.amount})
+  });
+  w.status = 'approved';
+  renderWithdrawals(allWithdrawals);
+  toast('✅ Withdrawal #'+id+' approved', 'success');
+  addLog('APPROVE_WITHDRAWAL','User '+w.user_id,'pending','approved');
+}
+
+async function rejectWithdrawal(id){
+  if(!confirm('Reject this withdrawal?')) return;
+  var w = allWithdrawals.find(function(x){ return x.id===id; });
+  if(!w) return;
+  await apiFetch('/api/admin/reject_withdrawal', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({withdrawal_id:id, user_id:w.user_id, amount:w.amount})
+  });
+  w.status = 'rejected';
+  renderWithdrawals(allWithdrawals);
+  toast('Withdrawal rejected', 'error');
+  addLog('REJECT_WITHDRAWAL','User '+w.user_id,'pending','rejected');
+}
+
+/* ════════════════════════════════════════
+   REPORTS
+════════════════════════════════════════ */
+var currentReport = [];
+var currentReportPeriod = 'daily';
+
+async function loadReport(period){
+  currentReportPeriod = period;
+  setText('report-title', period.charAt(0).toUpperCase()+period.slice(1)+' Report');
+  var data = await apiFetch('/api/admin/reports?period='+period);
+  var rows = data && data.rows ? data.rows : generateMockReport(period);
+  currentReport = rows;
+
+  var totDep=0,totWit=0,totGames=0,totPayout=0,totProfit=0;
+  rows.forEach(function(r){ totDep+=r.deposits||0; totWit+=r.withdrawals||0; totGames+=r.games||0; totPayout+=r.payout||0; totProfit+=r.profit||0; });
+
+  document.getElementById('report-stats').innerHTML =
+    '<div class="stat-card green"><div class="sc-label">Total Deposits</div><div class="sc-val green">'+totDep+' Br</div></div>'+
+    '<div class="stat-card red"><div class="sc-label">Total Withdrawals</div><div class="sc-val red">'+totWit+' Br</div></div>'+
+    '<div class="stat-card blue"><div class="sc-label">Total Games</div><div class="sc-val blue">'+totGames+'</div></div>'+
+    '<div class="stat-card yellow"><div class="sc-label">Total Profit</div><div class="sc-val yellow">'+totProfit+' Br</div></div>';
+
+  var tbody = document.getElementById('report-tbody');
+  tbody.innerHTML = rows.map(function(r){
+    return '<tr>'+
+      '<td style="font-family:\'Space Mono\',monospace;">'+r.date+'</td>'+
+      '<td style="color:var(--green);font-weight:700;">'+(r.deposits||0)+' Br</td>'+
+      '<td style="color:var(--red);font-weight:700;">'+(r.withdrawals||0)+' Br</td>'+
+      '<td>'+(r.games||0)+'</td>'+
+      '<td style="color:var(--yellow);">'+(r.payout||0)+' Br</td>'+
+      '<td style="color:var(--orange);font-weight:700;">'+(r.profit||0)+' Br</td>'+
+      '</tr>';
+  }).join('');
+}
+
+function generateMockReport(period){
+  var rows=[];
+  var n = period==='daily'?7:period==='weekly'?4:12;
+  for(var i=0;i<n;i++){
+    var dep=Math.round(Math.random()*2000+500);
+    var wit=Math.round(dep*0.6);
+    var pay=Math.round(dep*0.4);
+    rows.push({date:'2024-0'+(i+1)+'-01',deposits:dep,withdrawals:wit,games:Math.round(Math.random()*50+10),payout:pay,profit:dep-wit-pay});
+  }
+  return rows;
+}
+
+function exportReport(){
+  if(!currentReport.length){ toast('No data to export','warning'); return; }
+  var csv = 'Date,Deposits,Withdrawals,Games,Payout,Profit\n';
+  currentReport.forEach(function(r){ csv+=r.date+','+r.deposits+','+r.withdrawals+','+r.games+','+r.payout+','+r.profit+'\n'; });
+  downloadCSV(csv, 'bingo_report_'+currentReportPeriod+'.csv');
+  toast('Report exported!','success');
+}
+
+function downloadCSV(csv, filename){
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = filename; a.click();
+}
+
+/* ════════════════════════════════════════
+   GAME CONTROL
+════════════════════════════════════════ */
+function buildBingoBoard(){
+  var board = document.getElementById('admin-bingo-board');
+  if(!board) return;
+  var h = '';
+  COLS.forEach(function(L){ h+='<div class="bingo-col-header '+L+'">'+L+'</div>'; });
+  for(var row=1;row<=15;row++){
+    for(var ci=0;ci<5;ci++){
+      var n=ci*15+row, L=COLS[ci];
+      var isCurrent = gameState.current===n;
+      var isCalled  = gameState.called.has(n);
+      var cls = 'bingo-cell'+(isCurrent?' current':isCalled?' called':'');
+      var bg  = isCurrent||isCalled ? 'background:'+COL_COLORS[L]+';color:'+COL_TEXT[L]+';border-color:'+COL_COLORS[L] : '';
+      h+='<div class="'+cls+'" style="'+bg+'">'+n+'</div>';
+    }
+  }
+  board.innerHTML = h;
+  renderAdminBalls();
+}
+
+function showBallOnBoard(n){
+  buildBingoBoard();
+  renderAdminBalls();
+}
+
+function renderAdminBalls(){
+  if(!gameState.current) return;
+  var n=gameState.current, L=letterFor(n);
+  var el = document.getElementById('current-ball-display');
+  el.style.background = COL_COLORS[L]; el.style.color = COL_TEXT[L];
+  setText('cb-letter-admin', L+'-'); setText('cb-num-admin', n);
+  setText('gs-called', gameState.called.size);
+
+  var recentArr = Array.from(gameState.called).slice(-6);
+  document.getElementById('recent-balls-admin').innerHTML = recentArr.map(function(nb){
+    var Lb=letterFor(nb);
+    return '<div style="width:32px;height:32px;border-radius:50%;background:'+COL_COLORS[Lb]+';color:'+COL_TEXT[Lb]+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">'+nb+'</div>';
+  }).join('');
+
+  var calledArr = Array.from(gameState.called);
+  document.getElementById('called-list').innerHTML = calledArr.map(function(nb){
+    var Lb=letterFor(nb);
+    return '<div class="called-ball" style="background:'+COL_COLORS[Lb]+';color:'+COL_TEXT[Lb]+';">'+nb+'</div>';
+  }).join('');
+}
+
+async function manualCall(){
+  var input = document.getElementById('manual-num');
+  var n = parseInt(input.value);
+  if(isNaN(n)||n<1||n>75){ toast('Enter a valid number between 1 and 75','warning'); return; }
+  if(gameState.called.has(n)){ toast('Number '+n+' was already called!','warning'); return; }
+
+  var res = await apiFetch('/api/admin/manual_call', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({number:n, admin:currentUser.username})
+  });
+
+  /* Even if API not ready, broadcast via socket */
+  if(socket && socket.connected){
+    socket.emit('admin_manual_call', {number:n, admin:currentUser.username});
+  }
+  gameState.called.add(n); gameState.current=n;
+  buildBingoBoard();
+  input.value = '';
+  toast('📞 Called number '+n+' ('+letterFor(n)+')', 'success');
+  addLog('MANUAL_CALL','Ball '+n, '', '');
+}
+
+function setMaxWinners(n){
+  maxWinners = n;
+  [1,2,3,4].forEach(function(i){
+    document.getElementById('wo-'+i).classList.toggle('active', i===n);
+  });
+  apiFetch('/api/admin/set_max_winners',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({max_winners:n, admin:currentUser.username})
+  });
+  if(socket && socket.connected){ socket.emit('set_max_winners',{max:n}); }
+  toast('Max winners set to '+n, 'success');
+  addLog('SET_MAX_WINNERS','Game', '', n);
+}
+
+function renderWinnersList(){
+  var el = document.getElementById('winners-list');
+  el.innerHTML = gameState.winners.map(function(w,i){
+    return '<div style="background:var(--bg3);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;">'+
+      '<span style="font-weight:700;">🏆 '+w.winner_name+'</span>'+
+      '<span style="color:var(--yellow);font-family:\'Space Mono\',monospace;">Card #'+w.card_num+'</span>'+
+      '</div>';
+  }).join('');
+}
+
+function updateGameUI(){
+  setText('gs-status', '');
+  var statusEl = document.getElementById('gs-status');
+  statusEl.innerHTML = gameState.running ?
+    '<span class="badge blue"><span class="live-dot"></span>Running</span>' :
+    '<span class="badge yellow">Waiting</span>';
+  setText('gs-id', gameState.gameId||'—');
+  setText('gs-players', gameState.players||0);
+  setText('gs-called', gameState.called.size);
+  setText('gs-winners', gameState.winners.length);
+}
+
+async function pauseGame(){
+  if(!confirm('Pause the current game?')) return;
+  await apiFetch('/api/admin/pause_game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin:currentUser.username})});
+  if(socket) socket.emit('admin_pause_game',{admin:currentUser.username});
+  toast('Game paused','warning');
+  addLog('PAUSE_GAME','Game '+gameState.gameId,'running','paused');
+}
+
+async function cancelGame(){
+  if(!confirm('Cancel the current game? Players will be refunded.')) return;
+  await apiFetch('/api/admin/cancel_game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin:currentUser.username})});
+  if(socket) socket.emit('admin_cancel_game',{admin:currentUser.username});
+  gameState.running=false; gameState.called=new Set(); gameState.current=null; gameState.winners=[];
+  buildBingoBoard(); updateGameUI();
+  toast('Game cancelled','error');
+  addLog('CANCEL_GAME','Game '+gameState.gameId,'running','cancelled');
+}
+
+/* ════════════════════════════════════════
+   GAME HISTORY
+════════════════════════════════════════ */
+async function loadGameHistory(){
+  var data = await apiFetch('/api/admin/game_history');
+  var rows = data && data.games ? data.games : generateMockGames();
+  setText('gh-today', rows.filter(function(r){ return r.date&&r.date.includes(new Date().toISOString().split('T')[0]); }).length||rows.length);
+  setText('gh-week', rows.length);
+  setText('gh-month', rows.length);
+  var rev=0; rows.forEach(function(r){ rev+=r.total_income||0; });
+  setText('gh-revenue', rev+' Br');
+  var tbody = document.getElementById('gh-tbody');
+  tbody.innerHTML = rows.map(function(r){
+    return '<tr>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+r.game_id+'</td>'+
+      '<td>'+r.players+'</td>'+
+      '<td style="color:var(--yellow);">'+( r.winners||1)+'</td>'+
+      '<td style="color:var(--blue);">'+( r.total_income||0)+' Br</td>'+
+      '<td style="color:var(--green);">'+( r.payout||0)+' Br</td>'+
+      '<td style="color:var(--orange);font-weight:700;">'+( r.profit||0)+' Br</td>'+
+      '<td><span class="badge green">Completed</span></td>'+
+      '<td style="font-size:11px;color:var(--muted);">'+(r.date||'').split('T')[0]+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+function generateMockGames(){
+  var games=[];
+  for(var i=1;i<=10;i++){
+    var players=Math.round(Math.random()*20+5);
+    var pot=players*10;
+    var payout=Math.round(pot*0.8);
+    games.push({game_id:'GAME_'+String(i).padStart(3,'0'),players:players,total_income:pot,payout:payout,profit:pot-payout,date:new Date().toISOString()});
+  }
+  return games;
+}
+
+/* ════════════════════════════════════════
+   USERS
+════════════════════════════════════════ */
+async function loadUsers(){
+  var data = await apiFetch('/api/admin/users');
+  allUsers = data && data.users ? data.users : generateMockUsers();
+  renderUsers(allUsers);
+}
+
+function generateMockUsers(){
+  return [
+    {user_id:7627811244,first_name:'Abebe',phone:'0911234567',main_balance:500,play_balance:200,games_played:45,games_won:3,referral_count:12,status:'active',is_agent:1},
+    {user_id:1119881250,first_name:'Chaltu',phone:'0922345678',main_balance:1200,play_balance:50,games_played:120,games_won:8,referral_count:5,status:'active',is_agent:0},
+    {user_id:9876543210,first_name:'Dawit',phone:'0933456789',main_balance:0,play_balance:100,games_played:10,games_won:1,referral_count:0,status:'banned',is_agent:0},
+  ];
+}
+
+function searchUsers(){
+  var q = document.getElementById('user-search').value.toLowerCase();
+  var f = document.getElementById('user-filter').value;
+  var filtered = allUsers.filter(function(u){
+    var matchQ = !q||String(u.user_id).includes(q)||(u.first_name||'').toLowerCase().includes(q)||(u.phone||'').includes(q);
+    var matchF = f==='all'||(f==='active'&&u.status==='active')||(f==='banned'&&u.status==='banned')||
+                 (f==='vip'&&u.is_vip)||(f==='agent'&&u.is_agent);
+    return matchQ && matchF;
+  });
+  renderUsers(filtered);
+}
+
+function renderUsers(users){
+  var tbody = document.getElementById('user-tbody');
+  if(!users.length){ tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">No users found</td></tr>'; return; }
+  tbody.innerHTML = users.map(function(u){
+    var sc = u.status==='active'?'green':'red';
+    var tags = '';
+    if(u.is_agent) tags+='<span class="badge purple" style="margin-left:4px;font-size:9px;">Agent</span>';
+    if(u.is_vip) tags+='<span class="badge yellow" style="margin-left:4px;font-size:9px;">VIP</span>';
+    return '<tr>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+u.user_id+'</td>'+
+      '<td>'+(u.first_name||'—')+tags+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;">'+(u.phone||'—')+'</td>'+
+      '<td style="color:var(--green);font-weight:700;">'+(u.main_balance||0)+' Br</td>'+
+      '<td style="color:var(--blue);">'+(u.play_balance||0)+' Br</td>'+
+      '<td>'+(u.games_played||0)+'</td>'+
+      '<td style="color:var(--yellow);">'+(u.games_won||0)+'</td>'+
+      '<td>'+(u.referral_count||0)+'</td>'+
+      '<td><span class="badge '+sc+'">'+(u.status||'active')+'</span></td>'+
+      '<td><button class="btn btn-ghost btn-sm" onclick="openUserModal('+u.user_id+')">View</button></td>'+
+      '</tr>';
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   USER MODAL
+════════════════════════════════════════ */
+function openUserModal(userId){
+  var u = allUsers.find(function(x){ return x.user_id===userId; });
+  if(!u) return;
+
+  var infoHtml =
+    '<div class="info-box"><div class="ib-label">Telegram ID</div><div class="ib-val" style="font-family:\'Space Mono\',monospace;font-size:13px;">'+u.user_id+'</div></div>'+
+    '<div class="info-box"><div class="ib-label">Name</div><div class="ib-val">'+(u.first_name||'—')+'</div></div>'+
+    '<div class="info-box"><div class="ib-label">Phone</div><div class="ib-val" style="font-family:\'Space Mono\',monospace;">'+(u.phone||'—')+'</div></div>'+
+    '<div class="info-box"><div class="ib-label">Status</div><div class="ib-val"><span class="badge '+(u.status==='active'?'green':'red')+'">'+(u.status||'active')+'</span></div></div>'+
+    '<div class="info-box"><div class="ib-label">Main Balance</div><div class="ib-val" style="color:var(--green);">'+(u.main_balance||0)+' Br</div></div>'+
+    '<div class="info-box"><div class="ib-label">Play Balance</div><div class="ib-val" style="color:var(--blue);">'+(u.play_balance||0)+' Br</div></div>'+
+    '<div class="info-box"><div class="ib-label">Games Played</div><div class="ib-val">'+(u.games_played||0)+'</div></div>'+
+    '<div class="info-box"><div class="ib-label">Games Won</div><div class="ib-val" style="color:var(--yellow);">'+(u.games_won||0)+'</div></div>'+
+    '<div class="info-box"><div class="ib-label">Invites</div><div class="ib-val">'+(u.referral_count||0)+'</div></div>'+
+    '<div class="info-box"><div class="ib-label">Agent</div><div class="ib-val">'+(u.is_agent?'✅ Yes':'❌ No')+'</div></div>';
+
+  document.getElementById('modal-info').innerHTML = infoHtml;
+
+  var isSuper = currentUser.role === 'super';
+  var actHtml = '<div style="margin-top:16px;"><div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:12px;">⚡ Actions</div>';
+  actHtml += '<input class="balance-input" type="number" id="modal-amount" placeholder="Amount (Birr)"/>';
+  actHtml += '<div class="action-grid">';
+  actHtml += '<button class="btn btn-green" onclick="adjustBalance('+userId+',\'add\')">+ Add Balance</button>';
+  if(isSuper) actHtml += '<button class="btn btn-red" onclick="adjustBalance('+userId+',\'remove\')">− Remove Balance</button>';
+  actHtml += '<button class="btn btn-red" onclick="banUser('+userId+')">'+(u.status==='banned'?'🔓 Unban':'🚫 Ban')+'</button>';
+  if(isSuper) actHtml += '<button class="btn btn-ghost" onclick="freezeUser('+userId+')">❄️ Freeze</button>';
+  if(isSuper) actHtml += '<button class="btn btn-ghost" style="color:var(--yellow);border-color:var(--yellow);" onclick="markVIP('+userId+')">⭐ Mark VIP</button>';
+  actHtml += '</div></div>';
+
+  document.getElementById('modal-actions').innerHTML = actHtml;
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('user-modal').classList.remove('open'); }
+
+async function adjustBalance(userId, type){
+  var amt = parseInt(document.getElementById('modal-amount').value);
+  if(isNaN(amt)||amt<=0){ toast('Enter a valid amount','warning'); return; }
+  var endpoint = type==='add' ? '/api/admin/add_balance' : '/api/admin/remove_balance';
+  var res = await apiFetch(endpoint,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:userId,amount:amt,admin:currentUser.username})
+  });
+  var u = allUsers.find(function(x){ return x.user_id===userId; });
+  if(u){
+    if(type==='add') u.main_balance=(u.main_balance||0)+amt;
+    else u.main_balance=Math.max(0,(u.main_balance||0)-amt);
+  }
+  toast((type==='add'?'Added ':'Removed ')+amt+' Br '+(type==='add'?'to':'from')+' user', type==='add'?'success':'warning');
+  addLog((type==='add'?'ADD':'REMOVE')+'_BALANCE','User '+userId,'old',amt);
+  closeModal(); renderUsers(allUsers);
+}
+
+async function banUser(userId){
+  var u = allUsers.find(function(x){ return x.user_id===userId; });
+  if(!u) return;
+  var action = u.status==='banned'?'unban':'ban';
+  if(!confirm((action==='ban'?'Ban':'Unban')+' this user?')) return;
+  await apiFetch('/api/admin/'+action+'_user',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:userId,admin:currentUser.username})
+  });
+  u.status = action==='ban'?'banned':'active';
+  toast('User '+(action==='ban'?'banned':'unbanned'), action==='ban'?'error':'success');
+  addLog((action==='ban'?'BAN':'UNBAN')+'_USER','User '+userId,'','');
+  closeModal(); renderUsers(allUsers);
+}
+
+async function freezeUser(userId){
+  toast('Account frozen','warning');
+  addLog('FREEZE_USER','User '+userId,'active','frozen');
+  closeModal();
+}
+
+async function markVIP(userId){
+  var u = allUsers.find(function(x){ return x.user_id===userId; });
+  if(!u) return;
+  u.is_vip = !u.is_vip;
+  await apiFetch('/api/admin/mark_vip',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:userId,vip:u.is_vip,admin:currentUser.username})
+  });
+  toast('User '+(u.is_vip?'marked as VIP':'VIP removed'),'success');
+  addLog('MARK_VIP','User '+userId,'',''+u.is_vip);
+  closeModal(); renderUsers(allUsers);
+}
+
+/* ════════════════════════════════════════
+   RANKINGS
+════════════════════════════════════════ */
+async function loadRankings(cat, period){
+  currentRankCat = cat;
+  currentRankPeriod = period || document.getElementById('rank-period').value;
+  var titles = {deposit:'💰 Top Depositors',invite:'👥 Top Inviters',games:'🎮 Most Games',wins:'🏆 Most Wins'};
+  setText('rank-title', titles[cat]||'Rankings');
+  ['dep','inv','gam','win'].forEach(function(x){ document.getElementById('rbtn-'+x).className='btn btn-ghost'; });
+  var btnMap = {deposit:'dep',invite:'inv',games:'gam',wins:'win'};
+  var btn = document.getElementById('rbtn-'+btnMap[cat]);
+  if(btn) btn.className='btn btn-orange';
+
+  var data = await apiFetch('/api/admin/rankings?category='+cat+'&period='+currentRankPeriod+'&limit=30');
+  var rows = data && data.rankings ? data.rankings : generateMockRankings();
+  var tbody = document.getElementById('rank-tbody');
+  tbody.innerHTML = rows.map(function(r,i){
+    var nc = i===0?'rank-num gold':i===1?'rank-num silver':i===2?'rank-num bronze':'rank-num';
+    return '<tr>'+
+      '<td><span class="'+nc+'">'+(i+1)+'</span></td>'+
+      '<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+(r.user_id||'—')+'</td>'+
+      '<td style="font-weight:700;">'+(r.name||r.first_name||'—')+'</td>'+
+      '<td style="font-family:\'Space Mono\',monospace;">'+(r.phone||'—')+'</td>'+
+      '<td style="color:var(--green);font-weight:700;">'+(r.value||0)+'</td>'+
+      '<td><button class="btn btn-ghost btn-sm" onclick="openUserModal('+(r.user_id||0)+')">View</button></td>'+
+      '</tr>';
+  }).join('');
+}
+
+function reloadRankings(){ loadRankings(currentRankCat, document.getElementById('rank-period').value); }
+
+function generateMockRankings(){
+  var names=['Abebe','Chaltu','Dawit','Fikirte','Getnet','Hirut','Ismail','Jelalu','Kidist','Lemlem'];
+  return names.map(function(n,i){
+    return {user_id:1000000+i,name:n,phone:'091'+(1000000+i),value:Math.round(Math.random()*1000+100)};
+  });
+}
+
+function exportRankings(){
+  var tbody = document.getElementById('rank-tbody');
+  var csv = 'Rank,User ID,Name,Phone,Value\n';
+  var rows = tbody.querySelectorAll('tr');
+  rows.forEach(function(row,i){
+    var cells = row.querySelectorAll('td');
+    if(cells.length){ csv+=(i+1)+','+Array.from(cells).slice(0,5).map(function(c){ return c.textContent.trim(); }).join(',')+'\n'; }
+  });
+  downloadCSV(csv,'rankings_'+currentRankCat+'_'+currentRankPeriod+'.csv');
+  toast('Rankings exported!','success');
+}
+
+/* ════════════════════════════════════════
+   ADMIN LOGS
+════════════════════════════════════════ */
+function loadLogs(){
+  var el = document.getElementById('logs-list');
+  if(!adminLogs.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">No actions logged yet this session</div>'; return; }
+  var icons = {APPROVE_DEPOSIT:'💳',REJECT_DEPOSIT:'❌',APPROVE_WITHDRAWAL:'💸',REJECT_WITHDRAWAL:'❌',ADD_BALANCE:'➕',REMOVE_BALANCE:'➖',BAN_USER:'🚫',UNBAN_USER:'🔓',FREEZE_USER:'❄️',MARK_VIP:'⭐',MANUAL_CALL:'📞',SET_MAX_WINNERS:'🏆',PAUSE_GAME:'⏸',CANCEL_GAME:'✕'};
+  el.innerHTML = adminLogs.map(function(log){
+    var icon = icons[log.action] || '🔒';
+    return '<div class="log-row">'+
+      '<div class="log-icon">'+icon+'</div>'+
+      '<div class="log-info">'+
+        '<div class="log-action">'+log.action.replace(/_/g,' ')+'</div>'+
+        '<div class="log-detail">by '+log.admin+' → '+log.target+(log.next?' → '+log.next:'')+'</div>'+
+      '</div>'+
+      '<div class="log-time">'+(log.time||'').split('T').join(' ').split('.')[0]+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   SETTINGS
+════════════════════════════════════════ */
+async function saveSettings(){
+  var settings = {
+    timer:          document.getElementById('s-timer').value,
+    interval:       document.getElementById('s-interval').value,
+    prize_delay:    document.getElementById('s-prize-delay').value,
+    max_cards:      document.getElementById('s-max-cards').value,
+    card_price:     document.getElementById('s-card-price').value,
+    min_deposit:    document.getElementById('s-min-dep').value,
+    min_withdrawal: document.getElementById('s-min-wit').value,
+    house_take:     document.getElementById('s-house').value,
+    deposit_bonus:  document.getElementById('s-bonus').value,
+    referral_pct:   document.getElementById('s-ref').value,
+    agent_invites:  document.getElementById('s-agent-inv').value,
+    agent_deposits: document.getElementById('s-agent-dep').value,
+    agent_volume:   document.getElementById('s-agent-vol').value,
+    admin:          currentUser.username,
+  };
+  await apiFetch('/api/admin/settings',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(settings)
+  });
+  toast('✅ Settings saved!','success');
+  addLog('SAVE_SETTINGS','System','','updated');
+}
+
+/* Close modal on overlay click */
+document.getElementById('user-modal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+</script>
+</body>
+</html>
