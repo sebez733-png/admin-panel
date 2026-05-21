@@ -1049,11 +1049,11 @@ function exportAgents(){var agents=allAgents.filter(function(a){return a.is_agen
 function openUserModal(userId){
   var u=allUsers.find(function(x){return x.user_id===userId;});
   if(!u)return;
-  document.getElementById('modal-info').innerHTML=
+    document.getElementById('modal-info').innerHTML=
     '<div class="info-box"><div class="ib-label">Telegram ID</div><div class="ib-val" style="font-family:\'Space Mono\',monospace;font-size:13px;">'+u.user_id+'</div></div>'
     +'<div class="info-box"><div class="ib-label">Name</div><div class="ib-val">'+(u.first_name||'—')+'</div></div>'
     +'<div class="info-box"><div class="ib-label">Phone</div><div class="ib-val" style="font-family:\'Space Mono\',monospace;">'+(u.phone||'—')+'</div></div>'
-    +'<div class="info-box"><div class="ib-label">Status</div><div class="ib-val"><span class="badge '+(u.status==='active'?'green':'red')+'">'+(u.status||'active')+'</span></div></div>'
+    +'<div class="info-box"><div class="ib-label">Status</div><div class="ib-val"><span class="badge '+(u.status==='active'?'green':u.status==='frozen'?'blue':'red')+'">'+(u.status||'active')+'</span></div></div>'
     +'<div class="info-box"><div class="ib-label">Main Balance</div><div class="ib-val" style="color:var(--green);">'+(u.main_balance||0)+' Br</div></div>'
     +'<div class="info-box"><div class="ib-label">Play Balance</div><div class="ib-val" style="color:var(--blue);">'+(u.play_balance||0)+' Br</div></div>'
     +'<div class="info-box"><div class="ib-label">Games Played</div><div class="ib-val">'+(u.games_played||0)+'</div></div>'
@@ -1061,7 +1061,8 @@ function openUserModal(userId){
     +'<div class="info-box"><div class="ib-label">Total Invites</div><div class="ib-val">'+(u.referral_count||0)+'</div></div>'
     +'<div class="info-box"><div class="ib-label">Depositing Invites</div><div class="ib-val" style="color:var(--blue);">'+(u.referral_depositors||0)+'</div></div>'
     +'<div class="info-box"><div class="ib-label">Referral Volume</div><div class="ib-val" style="color:var(--orange);">'+(u.referral_volume||0)+' Br</div></div>'
-    +'<div class="info-box"><div class="ib-label">Agent</div><div class="ib-val">'+(u.is_agent?'✅ Yes':'❌ No')+'</div></div>';
+    +'<div class="info-box"><div class="ib-label">Agent</div><div class="ib-val">'+(u.is_agent?'✅ Yes':'❌ No')+'</div></div>'
+    +'<div class="info-box"><div class="ib-label">VIP Status</div><div class="ib-val">'+(u.is_vip?'⭐ VIP':'❌ No')+'</div></div>';
 
   var isSuper=currentUser.role==='super';
   var actHtml='<div style="margin-top:16px;"><div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:12px;">⚡ Actions</div>'
@@ -1072,7 +1073,7 @@ function openUserModal(userId){
   if(isSuper) actHtml+='<button class="btn btn-red" onclick="adjustBalance('+userId+',\'remove_main\')">− Remove Main</button><button class="btn btn-red" onclick="adjustBalance('+userId+',\'remove_play\')">− Remove Play</button>';
   actHtml+='<button class="btn btn-red" onclick="banUser('+userId+')">'+(u.status==='banned'?'🔓 Unban':'🚫 Ban')+'</button>';
   if(isSuper) actHtml+='<button class="btn btn-ghost" onclick="freezeUser('+userId+')">❄️ Freeze</button>';
-  if(isSuper) actHtml+='<button class="btn btn-ghost" style="color:var(--yellow);border-color:var(--yellow);" onclick="markVIP('+userId+')">⭐ Mark VIP</button>';
+    if(isSuper) actHtml+='<button class="btn btn-ghost" style="color:var(--yellow);border-color:var(--yellow);" onclick="markVIP('+userId+')">'+(u.is_vip?'❌ Remove VIP':'⭐ Mark VIP')+'</button>';
   // ✅ Removed Promote Agent Button
   actHtml+='</div></div>';
   document.getElementById('modal-actions').innerHTML=actHtml;
