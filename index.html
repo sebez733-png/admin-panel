@@ -346,7 +346,7 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
         </div>
       </div>
 
-      <!-- WITHDRAWALS — ENHANCED WITH FULL USER INFO -->
+      <!-- WITHDRAWALS -->
       <div class="page" id="page-withdrawals">
         <div class="page-title">Withdrawals</div>
         <div class="page-sub">Full user info — approve or reject withdrawal requests</div>
@@ -399,63 +399,133 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
         </div>
       </div>
 
-      <!-- GAME CONTROL -->
+      <!-- ✅ GAME CONTROL — SPLIT INTO ROOMS -->
       <div class="page" id="page-game">
         <div class="page-title">Game Control</div>
         <div class="page-sub">Live game management and controls</div>
-        <div class="stat-card" style="margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-          <div><div class="sc-label">Game Status</div><div id="gs-status"><span class="badge yellow">Waiting</span></div></div>
-          <div><div class="sc-label">Game ID</div><div style="font-weight:700;font-family:'Space Mono',monospace;font-size:13px;" id="gs-id">—</div></div>
-          <div><div class="sc-label">Players</div><div style="font-weight:800;font-size:20px;" id="gs-players">0</div></div>
-          <div><div class="sc-label">Numbers Called</div><div style="font-weight:800;font-size:20px;" id="gs-called">0</div></div>
-          <div><div class="sc-label">Winners</div><div style="font-weight:800;font-size:20px;color:var(--yellow);" id="gs-winners">0</div></div>
-          <div style="margin-left:auto;display:flex;gap:8px;">
-            <button class="btn btn-red btn-sm" onclick="pauseGame()">⏸ Pause</button>
-            <button class="btn btn-ghost btn-sm" onclick="cancelGame()">✕ Cancel</button>
-          </div>
+        
+        <!-- Room Tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;">
+          <button class="btn btn-orange" id="room-tab-10" onclick="switchRoomTab('10')">🎮 Room 10 Birr</button>
+          <button class="btn btn-ghost" id="room-tab-20" onclick="switchRoomTab('20')">🎮 Room 20 Birr</button>
         </div>
-        <div class="game-control-grid">
+
+        <!-- ROOM 10 CONTENT -->
+        <div id="room-10-content">
+          <div class="stat-card" style="margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <div><div class="sc-label">Game Status</div><div id="gs-status"><span class="badge yellow">Waiting</span></div></div>
+            <div><div class="sc-label">Game ID</div><div style="font-weight:700;font-family:'Space Mono',monospace;font-size:13px;" id="gs-id">—</div></div>
+            <div><div class="sc-label">Players</div><div style="font-weight:800;font-size:20px;" id="gs-players">0</div></div>
+            <div><div class="sc-label">Numbers Called</div><div style="font-weight:800;font-size:20px;" id="gs-called">0</div></div>
+            <div><div class="sc-label">Winners</div><div style="font-weight:800;font-size:20px;color:var(--yellow);" id="gs-winners">0</div></div>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <button class="btn btn-red btn-sm" onclick="pauseGame()">⏸ Pause</button>
+              <button class="btn btn-ghost btn-sm" onclick="cancelGame()">✕ Cancel</button>
+            </div>
+          </div>
+          <div class="game-control-grid">
+            <div class="control-card">
+              <div class="control-card-title">📞 Manual Number Call</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Type a number (1–75) and press Call or Enter.</div>
+              <div class="manual-call-box">
+                <input type="number" class="number-input" id="manual-num" placeholder="1-75" min="1" max="75"/>
+                <button class="btn btn-orange" onclick="manualCall()">📞 CALL</button>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'Space Mono',monospace;">CALLED NUMBERS</div>
+              <div class="called-list" id="called-list"></div>
+            </div>
+            <div class="control-card">
+              <div class="control-card-title">🏆 Max Winners Per Round</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set how many winners are allowed this round.</div>
+              <div class="winners-selector">
+                <div class="winner-opt active" onclick="setMaxWinners(1)" id="wo-1">1</div>
+                <div class="winner-opt" onclick="setMaxWinners(2)" id="wo-2">2</div>
+                <div class="winner-opt" onclick="setMaxWinners(3)" id="wo-3">3</div>
+                <div class="winner-opt" onclick="setMaxWinners(4)" id="wo-4">4</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Current Winners This Round:</div>
+              <div id="winners-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+            </div>
+          </div>
+          <div class="control-card" style="margin-bottom:16px;">
+            <div class="control-card-title">🎱 Live Number Board (Room 10)</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <button class="btn btn-red btn-sm" onclick="clearBoard()">🗑️ Clear Board</button>
+              <span style="font-size:11px;color:var(--muted);">Reset for new game</span>
+            </div>
+            <div class="bingo-board" id="admin-bingo-board-10"></div>
+          </div>
           <div class="control-card">
-            <div class="control-card-title">📞 Manual Number Call</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Type a number (1–75) and press Call or Enter.</div>
-            <div class="manual-call-box">
-              <input type="number" class="number-input" id="manual-num" placeholder="1-75" min="1" max="75"/>
-              <button class="btn btn-orange" onclick="manualCall()">📞 CALL</button>
+            <div class="control-card-title">🔵 Current Ball</div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <div class="current-ball-display" id="current-ball-display-10" style="background:#333;color:#fff;">
+                <span class="cb-letter-admin" id="cb-letter-admin-10">-</span>
+                <span class="cb-num-admin" id="cb-num-admin-10">-</span>
+              </div>
+              <div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Recent Balls</div>
+                <div style="display:flex;gap:2px;" id="recent-balls-admin-10"></div>
+              </div>
             </div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'Space Mono',monospace;">CALLED NUMBERS</div>
-            <div class="called-list" id="called-list"></div>
+          </div>
+        </div>
+
+        <!-- ROOM 20 CONTENT -->
+        <div id="room-20-content" style="display:none;">
+          <div class="stat-card" style="margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-left:4px solid var(--blue);">
+            <div><div class="sc-label">Game Status</div><div id="gs20-status"><span class="badge yellow">Waiting</span></div></div>
+            <div><div class="sc-label">Game ID</div><div style="font-weight:700;font-family:'Space Mono',monospace;font-size:13px;" id="gs20-id">—</div></div>
+            <div><div class="sc-label">Players</div><div style="font-weight:800;font-size:20px;" id="gs20-players">0</div></div>
+            <div><div class="sc-label">Numbers Called</div><div style="font-weight:800;font-size:20px;" id="gs20-called">0</div></div>
+            <div><div class="sc-label">Winners</div><div style="font-weight:800;font-size:20px;color:var(--yellow);" id="gs20-winners">0</div></div>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <button class="btn btn-red btn-sm" onclick="pauseGame()">⏸ Pause</button>
+              <button class="btn btn-ghost btn-sm" onclick="cancelGame()">✕ Cancel</button>
+            </div>
+          </div>
+          <div class="game-control-grid">
+            <div class="control-card">
+              <div class="control-card-title" style="color:var(--blue);">📞 Manual Number Call</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Type a number (1–75) and press Call or Enter.</div>
+              <div class="manual-call-box">
+                <input type="number" class="number-input" id="manual-num-20" placeholder="1-75" min="1" max="75"/>
+                <button class="btn btn-orange" onclick="manualCall20()">📞 CALL</button>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'Space Mono',monospace;">CALLED NUMBERS</div>
+              <div class="called-list" id="called-list-20"></div>
+            </div>
+            <div class="control-card">
+              <div class="control-card-title" style="color:var(--blue);">🏆 Max Winners Per Round</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set how many winners are allowed this round.</div>
+              <div class="winners-selector">
+                <div class="winner-opt active" onclick="setMaxWinners(1)" id="wo20-1">1</div>
+                <div class="winner-opt" onclick="setMaxWinners(2)" id="wo20-2">2</div>
+                <div class="winner-opt" onclick="setMaxWinners(3)" id="wo20-3">3</div>
+                <div class="winner-opt" onclick="setMaxWinners(4)" id="wo20-4">4</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Current Winners This Round:</div>
+              <div id="winners-list-20" style="display:flex;flex-direction:column;gap:6px;"></div>
+            </div>
+          </div>
+          <div class="control-card" style="margin-bottom:16px;">
+            <div class="control-card-title" style="color:var(--blue);">🎱 Live Number Board (Room 20)</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <button class="btn btn-red btn-sm" onclick="clearBoard()">🗑️ Clear Board</button>
+              <span style="font-size:11px;color:var(--muted);">Reset for new game</span>
+            </div>
+            <div class="bingo-board" id="admin-bingo-board-20"></div>
           </div>
           <div class="control-card">
-            <div class="control-card-title">🏆 Max Winners Per Round</div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set how many winners are allowed this round.</div>
-            <div class="winners-selector">
-              <div class="winner-opt active" onclick="setMaxWinners(1)" id="wo-1">1</div>
-              <div class="winner-opt" onclick="setMaxWinners(2)" id="wo-2">2</div>
-              <div class="winner-opt" onclick="setMaxWinners(3)" id="wo-3">3</div>
-              <div class="winner-opt" onclick="setMaxWinners(4)" id="wo-4">4</div>
-            </div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Current Winners This Round:</div>
-            <div id="winners-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-          </div>
-        </div>
-        <div class="control-card" style="margin-bottom:16px;">
-          <div class="control-card-title">🎱 Live Number Board</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-            <button class="btn btn-red btn-sm" onclick="clearBoard()">🗑️ Clear Board</button>
-            <span style="font-size:11px;color:var(--muted);">Reset for new game</span>
-          </div>
-          <div class="bingo-board" id="admin-bingo-board"></div>
-        </div>
-        <div class="control-card">
-          <div class="control-card-title">🔵 Current Ball</div>
-          <div style="display:flex;align-items:center;gap:16px;">
-            <div class="current-ball-display" id="current-ball-display" style="background:#333;color:#fff;">
-              <span class="cb-letter-admin" id="cb-letter-admin">-</span>
-              <span class="cb-num-admin" id="cb-num-admin">-</span>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Recent Balls</div>
-              <div style="display:flex;gap:2px;" id="recent-balls-admin"></div>
+            <div class="control-card-title" style="color:var(--blue);">🔵 Current Ball</div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <div class="current-ball-display" id="current-ball-display-20" style="background:#333;color:#fff;">
+                <span class="cb-letter-admin" id="cb-letter-admin-20">-</span>
+                <span class="cb-num-admin" id="cb-num-admin-20">-</span>
+              </div>
+              <div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Recent Balls</div>
+                <div style="display:flex;gap:2px;" id="recent-balls-admin-20"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -510,15 +580,16 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
       </div>
 
       <!-- ══════════════════════════════════════
-           AGENTS PAGE — NEW
+           ✅ AGENTS PAGE — UPDATED (NO APPROVAL/PROMOTE)
       ══════════════════════════════════════ -->
       <div class="page" id="page-agents">
         <div class="page-title">🤝 Agent Management</div>
-        <div class="page-sub">Agent requirements, rankings, and weekly giveaway tracker</div>
+        <div class="page-sub">Agent rankings and 10% automatic commission tracker</div>
 
         <!-- Requirements Box -->
         <div class="agent-req-box">
-          <div class="agent-req-title">🎯 Requirements to Become an Agent &amp; Earn 10% CASH Commission</div>
+          <div class="agent-req-title">🎯 Automatic Agent Upgrade & 10% CASH Commission</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Users who meet all 3 requirements automatically become Agents and earn 10% CASH on referrals.</div>
           <div class="agent-req-grid">
             <div class="agent-req-item">
               <div class="agent-req-icon">1️⃣</div>
@@ -580,26 +651,6 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
                 </tr>
               </thead>
               <tbody id="agent-tbody"><tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">Loading agents...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- All Qualifying Users (not yet agents) -->
-        <div class="table-card">
-          <div class="table-header">
-            <div class="table-title">⭐ Users Who Meet Agent Requirements (Not Yet Agent)</div>
-            <div style="font-size:11px;color:var(--muted);">Promote them to Agent</div>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>User ID</th><th>Name</th><th>Phone</th>
-                  <th>Invites</th><th>Depositors</th><th>Volume</th>
-                  <th>Est. Commission</th><th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="qualify-tbody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">Loading...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -748,7 +799,7 @@ function applyRolePermissions(){
     document.getElementById('super-nav-section').style.display='';
   }
 }
-function initApp(){startClock();initSocket();buildBingoBoard();loadDashboard();loadDeposits();loadWithdrawals();initCharts();setInterval(loadDashboard,30000);setInterval(function(){loadDeposits();loadWithdrawals();},15000);}
+function initApp(){startClock();initSocket();buildBingoBoard('10');buildBingoBoard('20');loadDashboard();loadDeposits();loadWithdrawals();initCharts();setInterval(loadDashboard,30000);setInterval(function(){loadDeposits();loadWithdrawals();},15000);}
 function startClock(){function tick(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-ET',{hour12:false});}tick();setInterval(tick,1000);}
 
 /* ══ SOCKET ══ */
@@ -759,10 +810,10 @@ function initSocket(){
     socket.on('disconnect',function(){setConn(false);});
     socket.on('game_state_update',function(data){gameState.running=data.game_running;gameState.gameId=data.game_id;gameState.players=data.total_players||0;if(data.called_numbers)data.called_numbers.forEach(function(n){gameState.called.add(n);});updateGameUI();});
     socket.on('ball_called',function(data){if(!data.number)return;gameState.called.add(data.number);gameState.current=data.number;updateGameUI();showBallOnBoard(data.number);});
-    socket.on('player_joined',function(data){gameState.players=data.total_players||gameState.players;setText('gs-players',gameState.players);});
-    socket.on('winner_found',function(data){gameState.winners.push(data);setText('gs-winners',gameState.winners.length);renderWinnersList();toast('🏆 Winner: '+data.winner_name+' — Card #'+data.card_num,'success');});
-    socket.on('game_started',function(data){gameState.running=true;gameState.gameId=data.game_id;gameState.called=new Set();gameState.current=null;gameState.winners=[];buildBingoBoard();updateGameUI();});
-    socket.on('countdown_update',function(data){gameState.gameId=data.game_id;setText('gs-id',data.game_id||'—');});
+    socket.on('player_joined',function(data){gameState.players=data.total_players||gameState.players;setText('gs-players',gameState.players);setText('gs20-players',gameState.players);});
+    socket.on('winner_found',function(data){gameState.winners.push(data);setText('gs-winners',gameState.winners.length);setText('gs20-winners',gameState.winners.length);renderWinnersList();toast('🏆 Winner: '+data.winner_name+' — Card #'+data.card_num,'success');});
+    socket.on('game_started',function(data){gameState.running=true;gameState.gameId=data.game_id;gameState.called=new Set();gameState.current=null;gameState.winners=[];buildBingoBoard('10');buildBingoBoard('20');updateGameUI();});
+    socket.on('countdown_update',function(data){gameState.gameId=data.game_id;setText('gs-id',data.game_id||'—');setText('gs20-id',data.game_id||'—');});
   }catch(e){setConn(false);}
 }
 function setConn(on){var dot=document.getElementById('conn-dot');var lbl=document.getElementById('conn-label');dot.className='connection-dot'+(on?'':' off');lbl.textContent=on?'Connected':'Disconnected';}
@@ -779,7 +830,7 @@ function navTo(page){
   if(page==='rankings')   loadRankings(currentRankCat,currentRankPeriod);
   if(page==='logs')       loadLogs();
   if(page==='gamehistory')loadGameHistory();
-  if(page==='game')       buildBingoBoard();
+  if(page==='game')       {buildBingoBoard('10');buildBingoBoard('20');}
 }
 
 /* ══ HELPERS ══ */
@@ -832,103 +883,83 @@ function renderDeposits(deps){
 async function approveDeposit(id){var dep=allDeposits.find(function(d){return d.id===id;});if(!dep)return;await apiFetch('/api/admin/approve_deposit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deposit_id:id,user_id:dep.user_id,amount:dep.amount})});dep.status='completed';renderDeposits(allDeposits);toast('✅ Deposit #'+id+' approved','success');addLog('APPROVE_DEPOSIT','User '+dep.user_id,'pending','completed');}
 async function rejectDeposit(id){if(!confirm('Reject this deposit?'))return;var dep=allDeposits.find(function(d){return d.id===id;});if(!dep)return;dep.status='rejected';await apiFetch('/api/admin/reject_deposit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deposit_id:id})});renderDeposits(allDeposits);toast('Deposit #'+id+' rejected','error');addLog('REJECT_DEPOSIT','User '+dep.user_id,'pending','rejected');}
 
-/* ══ WITHDRAWALS — ENHANCED WITH FULL USER INFO ══ */
+/* ══ WITHDRAWALS ══ */
 async function loadWithdrawals(){
   var data=await apiFetch('/api/admin/withdrawals');
   allWithdrawals=(data&&data.withdrawals)?data.withdrawals:generateMockWithdrawals();
-  // Merge user info into withdrawals
-  allWithdrawals.forEach(function(w){
-    var u=allUsers.find(function(x){return x.user_id===w.user_id;});
-    if(u){w._user=u;}
-  });
+  allWithdrawals.forEach(function(w){var u=allUsers.find(function(x){return x.user_id===w.user_id;});if(u){w._user=u;}});
   renderWithdrawals(allWithdrawals);
   var pending=allWithdrawals.filter(function(w){return w.status==='pending';}).length;
   setText('badge-withdrawals',pending);setText('d-pend-wit',pending);
 }
-function generateMockWithdrawals(){
-  return [
-    {id:1,user_id:7627811244,username:'Abebe',phone:'0911234567',amount:500,method:'Telebirr',status:'pending',time:'2024-01-15 10:00:00',main_balance:1250,play_balance:200,games_played:45,games_won:3,referral_count:12,is_agent:1},
-    {id:2,user_id:1119881250,username:'Chaltu',phone:'0922345678',amount:200,method:'Telebirr',status:'approved',time:'2024-01-15 08:30:00',main_balance:800,play_balance:50,games_played:120,games_won:8,referral_count:5,is_agent:0}
-  ];
-}
-function filterWithdrawals(){
-  var q=document.getElementById('wit-search').value.toLowerCase();
-  var f=document.getElementById('wit-filter').value;
-  renderWithdrawals(allWithdrawals.filter(function(w){
-    var mQ=!q||String(w.user_id).includes(q)||(w.username||'').toLowerCase().includes(q)||(w.phone||'').includes(q);
-    var mF=f==='all'||w.status===f;
-    return mQ&&mF;
-  }));
-}
+function generateMockWithdrawals(){return [{id:1,user_id:7627811244,username:'Abebe',phone:'0911234567',amount:500,method:'Telebirr',status:'pending',time:'2024-01-15 10:00:00',main_balance:1250,play_balance:200,games_played:45,games_won:3,referral_count:12,is_agent:1},{id:2,user_id:1119881250,username:'Chaltu',phone:'0922345678',amount:200,method:'Telebirr',status:'approved',time:'2024-01-15 08:30:00',main_balance:800,play_balance:50,games_played:120,games_won:8,referral_count:5,is_agent:0}];}
+function filterWithdrawals(){var q=document.getElementById('wit-search').value.toLowerCase();var f=document.getElementById('wit-filter').value;renderWithdrawals(allWithdrawals.filter(function(w){var mQ=!q||String(w.user_id).includes(q)||(w.username||'').toLowerCase().includes(q)||(w.phone||'').includes(q);var mF=f==='all'||w.status===f;return mQ&&mF;}));}
 function renderWithdrawals(wits){
   var tbody=document.getElementById('wit-tbody');
   if(!wits.length){tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--muted);">No withdrawals found</td></tr>';return;}
   tbody.innerHTML=wits.map(function(w){
-    var u=w._user||w; // use merged user data or withdrawal data itself
-    var sc=w.status==='approved'?'green':w.status==='pending'?'yellow':'red';
+    var u=w._user||w;var sc=w.status==='approved'?'green':w.status==='pending'?'yellow':'red';
     var agentTag=u.is_agent?'<span class="badge purple" style="margin-left:4px;font-size:9px;">Agent</span>':'';
-    var actions=w.status==='pending'
-      ?'<button class="btn btn-green btn-sm" onclick="approveWithdrawal('+w.id+')">✓</button> <button class="btn btn-red btn-sm" onclick="rejectWithdrawal('+w.id+')">✕</button>'
-      :'<span style="color:var(--muted);font-size:12px;">'+w.status+'</span>';
-    return '<tr>'
-      +'<td style="font-family:\'Space Mono\',monospace;font-size:11px;">#'+w.id+'</td>'
-      +'<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+w.user_id+'</td>'
-      +'<td>'+(w.username||u.first_name||'—')+agentTag+'</td>'
-      +'<td style="font-family:\'Space Mono\',monospace;">'+(w.phone||'—')+'</td>'
-      +'<td style="color:var(--green);font-weight:700;">'+(u.main_balance||w.main_balance||'—')+' Br</td>'
-      +'<td style="color:var(--blue);">'+(u.play_balance||w.play_balance||'—')+' Br</td>'
-      +'<td>'+(u.games_played||w.games_played||'—')+'</td>'
-      +'<td style="color:var(--yellow);">'+(u.games_won||w.games_won||'—')+'</td>'
-      +'<td>'+(u.referral_count||w.referral_count||'—')+'</td>'
-      +'<td style="font-weight:700;color:var(--red);">'+w.amount+' Br</td>'
-      +'<td>'+w.method+'</td>'
-      +'<td><span class="badge '+sc+'">'+w.status+'</span></td>'
-      +'<td style="font-size:11px;color:var(--muted);">'+(w.time||'').split('T')[0]+'</td>'
-      +'<td style="display:flex;gap:4px;align-items:center;">'
-        +actions
-        +' <button class="btn btn-ghost btn-sm" onclick="openWithdrawalUserModal('+w.id+')">👤</button>'
-      +'</td>'
-      +'</tr>';
+    var actions=w.status==='pending'?'<button class="btn btn-green btn-sm" onclick="approveWithdrawal('+w.id+')">✓</button> <button class="btn btn-red btn-sm" onclick="rejectWithdrawal('+w.id+')">✕</button>':'<span style="color:var(--muted);font-size:12px;">'+w.status+'</span>';
+    return '<tr><td style="font-family:\'Space Mono\',monospace;font-size:11px;">#'+w.id+'</td><td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+w.user_id+'</td><td>'+(w.username||u.first_name||'—')+agentTag+'</td><td style="font-family:\'Space Mono\',monospace;">'+(w.phone||'—')+'</td><td style="color:var(--green);font-weight:700;">'+(u.main_balance||w.main_balance||'—')+' Br</td><td style="color:var(--blue);">'+(u.play_balance||w.play_balance||'—')+' Br</td><td>'+(u.games_played||w.games_played||'—')+'</td><td style="color:var(--yellow);">'+(u.games_won||w.games_won||'—')+'</td><td>'+(u.referral_count||w.referral_count||'—')+'</td><td style="font-weight:700;color:var(--red);">'+w.amount+' Br</td><td>'+w.method+'</td><td><span class="badge '+sc+'">'+w.status+'</span></td><td style="font-size:11px;color:var(--muted);">'+(w.time||'').split('T')[0]+'</td><td style="display:flex;gap:4px;align-items:center;">'+actions+' <button class="btn btn-ghost btn-sm" onclick="openWithdrawalUserModal('+w.id+')">👤</button></td></tr>';
   }).join('');
 }
 async function approveWithdrawal(id){var w=allWithdrawals.find(function(x){return x.id===id;});if(!w)return;w.status='approved';await apiFetch('/api/admin/approve_withdrawal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({withdrawal_id:id,user_id:w.user_id,amount:w.amount})});renderWithdrawals(allWithdrawals);toast('✅ Withdrawal #'+id+' approved','success');addLog('APPROVE_WITHDRAWAL','User '+w.user_id,'pending','approved');}
 async function rejectWithdrawal(id){if(!confirm('Reject this withdrawal?'))return;var w=allWithdrawals.find(function(x){return x.id===id;});if(!w)return;await apiFetch('/api/admin/reject_withdrawal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({withdrawal_id:id,user_id:w.user_id,amount:w.amount})});w.status='rejected';renderWithdrawals(allWithdrawals);toast('Withdrawal rejected','error');addLog('REJECT_WITHDRAWAL','User '+w.user_id,'pending','rejected');}
-
-// Open user modal from withdrawal row
-function openWithdrawalUserModal(withdrawalId){
-  var w=allWithdrawals.find(function(x){return x.id===withdrawalId;});
-  if(!w)return;
-  // Build a user object from withdrawal + merged user data
-  var u=w._user||{user_id:w.user_id,first_name:w.username,phone:w.phone,main_balance:w.main_balance,play_balance:w.play_balance,games_played:w.games_played,games_won:w.games_won,referral_count:w.referral_count,is_agent:w.is_agent,status:'active'};
-  if(!allUsers.find(function(x){return x.user_id===u.user_id;})) allUsers.push(u);
-  openUserModal(u.user_id);
-}
+function openWithdrawalUserModal(withdrawalId){var w=allWithdrawals.find(function(x){return x.id===withdrawalId;});if(!w)return;var u=w._user||{user_id:w.user_id,first_name:w.username,phone:w.phone,main_balance:w.main_balance,play_balance:w.play_balance,games_played:w.games_played,games_won:w.games_won,referral_count:w.referral_count,is_agent:w.is_agent,status:'active'};if(!allUsers.find(function(x){return x.user_id===u.user_id;})) allUsers.push(u);openUserModal(u.user_id);}
 
 /* ══ REPORTS ══ */
 var currentReport=[],currentReportPeriod='daily';
-async function loadReport(period){
-  currentReportPeriod=period;setText('report-title',period.charAt(0).toUpperCase()+period.slice(1)+' Report');
-  var data=await apiFetch('/api/admin/reports?period='+period);
-  var rows=(data&&data.rows)?data.rows:generateMockReport(period);currentReport=rows;
-  var tD=0,tW=0,tG=0,tPa=0,tPr=0;
-  rows.forEach(function(r){tD+=r.deposits||0;tW+=r.withdrawals||0;tG+=r.games||0;tPa+=r.payout||0;tPr+=r.profit||0;});
-  document.getElementById('report-stats').innerHTML='<div class="stat-card green"><div class="sc-label">Total Deposits</div><div class="sc-val green">'+tD+' Br</div></div><div class="stat-card red"><div class="sc-label">Total Withdrawals</div><div class="sc-val red">'+tW+' Br</div></div><div class="stat-card blue"><div class="sc-label">Total Games</div><div class="sc-val blue">'+tG+'</div></div><div class="stat-card yellow"><div class="sc-label">Total Profit</div><div class="sc-val yellow">'+tPr+' Br</div></div>';
-  document.getElementById('report-tbody').innerHTML=rows.map(function(r){return '<tr><td style="font-family:\'Space Mono\',monospace;">'+r.date+'</td><td style="color:var(--green);font-weight:700;">'+(r.deposits||0)+' Br</td><td style="color:var(--red);font-weight:700;">'+(r.withdrawals||0)+' Br</td><td>'+(r.games||0)+'</td><td style="color:var(--yellow);">'+(r.payout||0)+' Br</td><td style="color:var(--orange);font-weight:700;">'+(r.profit||0)+' Br</td></tr>';}).join('');
-}
+async function loadReport(period){currentReportPeriod=period;setText('report-title',period.charAt(0).toUpperCase()+period.slice(1)+' Report');var data=await apiFetch('/api/admin/reports?period='+period);var rows=(data&&data.rows)?data.rows:generateMockReport(period);currentReport=rows;var tD=0,tW=0,tG=0,tPa=0,tPr=0;rows.forEach(function(r){tD+=r.deposits||0;tW+=r.withdrawals||0;tG+=r.games||0;tPa+=r.payout||0;tPr+=r.profit||0;});document.getElementById('report-stats').innerHTML='<div class="stat-card green"><div class="sc-label">Total Deposits</div><div class="sc-val green">'+tD+' Br</div></div><div class="stat-card red"><div class="sc-label">Total Withdrawals</div><div class="sc-val red">'+tW+' Br</div></div><div class="stat-card blue"><div class="sc-label">Total Games</div><div class="sc-val blue">'+tG+'</div></div><div class="stat-card yellow"><div class="sc-label">Total Profit</div><div class="sc-val yellow">'+tPr+' Br</div></div>';document.getElementById('report-tbody').innerHTML=rows.map(function(r){return '<tr><td style="font-family:\'Space Mono\',monospace;">'+r.date+'</td><td style="color:var(--green);font-weight:700;">'+(r.deposits||0)+' Br</td><td style="color:var(--red);font-weight:700;">'+(r.withdrawals||0)+' Br</td><td>'+(r.games||0)+'</td><td style="color:var(--yellow);">'+(r.payout||0)+' Br</td><td style="color:var(--orange);font-weight:700;">'+(r.profit||0)+' Br</td></tr>';}).join('');}
 function generateMockReport(period){var rows=[],n=period==='daily'?7:period==='weekly'?4:12;for(var i=0;i<n;i++){var dep=Math.round(Math.random()*2000+500),wit=Math.round(dep*0.6),pay=Math.round(dep*0.4);rows.push({date:'2024-0'+(i+1)+'-01',deposits:dep,withdrawals:wit,games:Math.round(Math.random()*50+10),payout:pay,profit:dep-wit-pay});}return rows;}
 function exportReport(){if(!currentReport.length){toast('No data to export','warning');return;}var csv='Date,Deposits,Withdrawals,Games,Payout,Profit\n';currentReport.forEach(function(r){csv+=r.date+','+r.deposits+','+r.withdrawals+','+r.games+','+r.payout+','+r.profit+'\n';});downloadCSV(csv,'bingo_report_'+currentReportPeriod+'.csv');toast('Report exported!','success');}
 function downloadCSV(csv,filename){var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=filename;a.click();}
 
 /* ══ GAME CONTROL ══ */
-function buildBingoBoard(){var board=document.getElementById('admin-bingo-board');if(!board)return;var h='';COLS.forEach(function(L){h+='<div class="bingo-col-header '+L+'">'+L+'</div>';});for(var row=1;row<=15;row++){for(var ci=0;ci<5;ci++){var n=ci*15+row,L=COLS[ci];var isCurrent=gameState.current===n;var isCalled=gameState.called.has(n);var cls='bingo-cell'+(isCurrent?' current':isCalled?' called':'');var bg=(isCurrent||isCalled)?'background:'+COL_COLORS[L]+';color:'+COL_TEXT[L]+';border-color:'+COL_COLORS[L]:'';h+='<div class="'+cls+'" style="'+bg+'">'+n+'</div>';}}board.innerHTML=h;renderAdminBalls();}
-function showBallOnBoard(n){buildBingoBoard();}
-function renderAdminBalls(){if(!gameState.current)return;var n=gameState.current,L=letterFor(n);var el=document.getElementById('current-ball-display');if(el){el.style.background=COL_COLORS[L];el.style.color=COL_TEXT[L];}setText('cb-letter-admin',L+'-');setText('cb-num-admin',n);setText('gs-called',gameState.called.size);var recentArr=Array.from(gameState.called).slice(-6);document.getElementById('recent-balls-admin').innerHTML=recentArr.map(function(nb){var Lb=letterFor(nb);return '<div class="recent-ball-mini" style="background:'+COL_COLORS[Lb]+';color:'+COL_TEXT[Lb]+';">'+nb+'</div>';}).join('');document.getElementById('called-list').innerHTML=Array.from(gameState.called).map(function(nb){var Lb=letterFor(nb);return '<div class="called-ball" style="background:'+COL_COLORS[Lb]+';color:'+COL_TEXT[Lb]+';">'+nb+'</div>';}).join('');}
-function clearBoard(){gameState.called=new Set();gameState.current=null;gameState.winners=[];buildBingoBoard();updateGameUI();document.getElementById('called-list').innerHTML='';document.getElementById('recent-balls-admin').innerHTML='';var el=document.getElementById('current-ball-display');if(el){el.style.background='#333';el.style.color='#fff';}setText('cb-letter-admin','-');setText('cb-num-admin','-');setText('gs-called','0');setText('gs-winners','0');toast('🗑️ Board cleared!','success');addLog('CLEAR_BOARD','Game','','');}
+function switchRoomTab(room) {
+  document.getElementById('room-10-content').style.display = room === '10' ? 'block' : 'none';
+  document.getElementById('room-20-content').style.display = room === '20' ? 'block' : 'none';
+  document.getElementById('room-tab-10').className = room === '10' ? 'btn btn-orange' : 'btn btn-ghost';
+  document.getElementById('room-tab-20').className = room === '20' ? 'btn btn-orange' : 'btn btn-ghost';
+}
+
+function buildBingoBoard(room){
+  var boardId = 'admin-bingo-board-'+room;
+  var board=document.getElementById(boardId);
+  if(!board)return;
+  var h='';COLS.forEach(function(L){h+='<div class="bingo-col-header '+L+'">'+L+'</div>';});
+  for(var row=1;row<=15;row++){for(var ci=0;ci<5;ci++){var n=ci*15+row,L=COLS[ci];var isCurrent=gameState.current===n;var isCalled=gameState.called.has(n);var cls='bingo-cell'+(isCurrent?' current':isCalled?' called':'');var bg=(isCurrent||isCalled)?'background:'+COL_COLORS[L]+';color:'+COL_TEXT[L]+';border-color:'+COL_COLORS[L]:'';h+='<div class="'+cls+'" style="'+bg+'">'+n+'</div>';}}
+  board.innerHTML=h;
+  renderAdminBalls(room);
+}
+
+function showBallOnBoard(n){buildBingoBoard('10');buildBingoBoard('20');}
+
+function renderAdminBalls(room){
+  if(!gameState.current)return;
+  var n=gameState.current,L=letterFor(n);
+  var el=document.getElementById('current-ball-display-'+room);
+  if(el){el.style.background=COL_COLORS[L];el.style.color=COL_TEXT[L];}
+  setText('cb-letter-admin-'+room,L+'-');setText('cb-num-admin-'+room,n);
+  
+  var recentArr=Array.from(gameState.called).slice(-6);
+  document.getElementById('recent-balls-admin-'+room).innerHTML=recentArr.map(function(nb){var Lb=letterFor(nb);return '<div class="recent-ball-mini" style="background:'+COL_COLORS[Lb]+';color:'+COL_TEXT[Lb]+';">'+nb+'</div>';}).join('');
+  
+  document.getElementById('called-list-'+room).innerHTML=Array.from(gameState.called).map(function(nb){var Lb=letterFor(nb);return '<div class="called-ball" style="background:'+COL_COLORS[Lb]+';color:'+COL_TEXT[Lb]+';">'+nb+'</div>';}).join('');
+}
+
+function clearBoard(){gameState.called=new Set();gameState.current=null;gameState.winners=[];buildBingoBoard('10');buildBingoBoard('20');updateGameUI();['10','20'].forEach(function(r){document.getElementById('called-list-'+r).innerHTML='';document.getElementById('recent-balls-admin-'+r).innerHTML='';var el=document.getElementById('current-ball-display-'+r);if(el){el.style.background='#333';el.style.color='#fff';}setText('cb-letter-admin-'+r,'-');setText('cb-num-admin-'+r,'-');});setText('gs-called','0');setText('gs20-called','0');setText('gs-winners','0');setText('gs20-winners','0');toast('🗑️ Board cleared!','success');addLog('CLEAR_BOARD','Game','','');}
+
 document.getElementById('manual-num').addEventListener('keydown',function(e){if(e.key==='Enter')manualCall();});
-async function manualCall(){var input=document.getElementById('manual-num');var n=parseInt(input.value);if(isNaN(n)||n<1||n>75){toast('Enter a valid number between 1 and 75','warning');return;}if(gameState.called.has(n)){toast('Number '+n+' was already called!','warning');return;}await apiFetch('/api/admin/manual_call',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:n,admin:currentUser.username})});if(socket&&socket.connected)socket.emit('admin_manual_call',{number:n,admin:currentUser.username});gameState.called.add(n);gameState.current=n;buildBingoBoard();input.value='';toast('📞 Called number '+n+' ('+letterFor(n)+')','success');addLog('MANUAL_CALL','Ball '+n,'','');}
-function setMaxWinners(n){maxWinners=n;[1,2,3,4].forEach(function(i){document.getElementById('wo-'+i).classList.toggle('active',i===n);});apiFetch('/api/admin/set_max_winners',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({max_winners:n,admin:currentUser.username})});if(socket&&socket.connected)socket.emit('set_max_winners',{max:n});toast('Max winners set to '+n,'success');addLog('SET_MAX_WINNERS','Game','',n);}
-function renderWinnersList(){document.getElementById('winners-list').innerHTML=gameState.winners.map(function(w){return '<div style="background:var(--bg3);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;"><span style="font-weight:700;">🏆 '+w.winner_name+'</span><span style="color:var(--yellow);font-family:\'Space Mono\',monospace;">Card #'+w.card_num+'</span></div>';}).join('');}
-function updateGameUI(){var statusEl=document.getElementById('gs-status');statusEl.innerHTML=gameState.running?'<span class="badge blue"><span class="live-dot"></span>Running</span>':'<span class="badge yellow">Waiting</span>';setText('gs-id',gameState.gameId||'—');setText('gs-players',gameState.players||0);setText('gs-called',gameState.called.size);setText('gs-winners',gameState.winners.length);}
+document.getElementById('manual-num-20').addEventListener('keydown',function(e){if(e.key==='Enter')manualCall20();});
+
+async function manualCall(){var input=document.getElementById('manual-num');var n=parseInt(input.value);if(isNaN(n)||n<1||n>75){toast('Enter a valid number between 1 and 75','warning');return;}if(gameState.called.has(n)){toast('Number '+n+' was already called!','warning');return;}await apiFetch('/api/admin/manual_call',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:n,admin:currentUser.username})});if(socket&&socket.connected)socket.emit('admin_manual_call',{number:n,admin:currentUser.username});gameState.called.add(n);gameState.current=n;buildBingoBoard('10');buildBingoBoard('20');input.value='';toast('📞 Called number '+n+' ('+letterFor(n)+')','success');addLog('MANUAL_CALL','Ball '+n,'','');}
+
+async function manualCall20(){var input=document.getElementById('manual-num-20');var n=parseInt(input.value);if(isNaN(n)||n<1||n>75){toast('Enter a valid number between 1 and 75','warning');return;}if(gameState.called.has(n)){toast('Number '+n+' was already called!','warning');return;}await apiFetch('/api/admin/manual_call',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:n,admin:currentUser.username})});if(socket&&socket.connected)socket.emit('admin_manual_call',{number:n,admin:currentUser.username});gameState.called.add(n);gameState.current=n;buildBingoBoard('10');buildBingoBoard('20');input.value='';toast('📞 [Room 20] Called number '+n+' ('+letterFor(n)+')','success');addLog('MANUAL_CALL_20','Ball '+n,'','');}
+
+function setMaxWinners(n){maxWinners=n;[1,2,3,4].forEach(function(i){document.getElementById('wo-'+i).classList.toggle('active',i===n);document.getElementById('wo20-'+i).classList.toggle('active',i===n);});apiFetch('/api/admin/set_max_winners',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({max_winners:n,admin:currentUser.username})});if(socket&&socket.connected)socket.emit('set_max_winners',{max:n});toast('Max winners set to '+n,'success');addLog('SET_MAX_WINNERS','Game','',n);}
+function renderWinnersList(){var html=gameState.winners.map(function(w){return '<div style="background:var(--bg3);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;"><span style="font-weight:700;">🏆 '+w.winner_name+'</span><span style="color:var(--yellow);font-family:\'Space Mono\',monospace;">Card #'+w.card_num+'</span></div>';}).join('');document.getElementById('winners-list').innerHTML=html;document.getElementById('winners-list-20').innerHTML=html;}
+function updateGameUI(){var statusEl=document.getElementById('gs-status');var statusEl20=document.getElementById('gs20-status');var runHtml=gameState.running?'<span class="badge blue"><span class="live-dot"></span>Running</span>':'<span class="badge yellow">Waiting</span>';statusEl.innerHTML=runHtml;statusEl20.innerHTML=runHtml;setText('gs-id',gameState.gameId||'—');setText('gs20-id',gameState.gameId||'—');setText('gs-players',gameState.players||0);setText('gs20-players',gameState.players||0);setText('gs-called',gameState.called.size);setText('gs20-called',gameState.called.size);setText('gs-winners',gameState.winners.length);setText('gs20-winners',gameState.winners.length);}
 async function pauseGame(){if(!confirm('Pause the current game?'))return;await apiFetch('/api/admin/pause_game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin:currentUser.username})});if(socket)socket.emit('admin_pause_game',{admin:currentUser.username});toast('Game paused','warning');addLog('PAUSE_GAME','Game '+gameState.gameId,'running','paused');}
 async function cancelGame(){if(!confirm('Cancel the current game?'))return;await apiFetch('/api/admin/cancel_game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin:currentUser.username})});if(socket)socket.emit('admin_cancel_game',{admin:currentUser.username});clearBoard();gameState.running=false;updateGameUI();toast('Game cancelled','error');addLog('CANCEL_GAME','Game '+gameState.gameId,'running','cancelled');}
 
@@ -943,7 +974,7 @@ function searchUsers(){var q=document.getElementById('user-search').value.toLowe
 function renderUsers(users){var tbody=document.getElementById('user-tbody');if(!users.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">No users found</td></tr>';return;}tbody.innerHTML=users.map(function(u){var sc=u.status==='active'?'green':'red';var tags='';if(u.is_agent)tags+='<span class="badge purple" style="margin-left:4px;font-size:9px;">Agent</span>';if(u.is_vip)tags+='<span class="badge yellow" style="margin-left:4px;font-size:9px;">VIP</span>';return '<tr><td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+u.user_id+'</td><td>'+(u.first_name||'—')+tags+'</td><td style="font-family:\'Space Mono\',monospace;">'+(u.phone||'—')+'</td><td style="color:var(--green);font-weight:700;">'+(u.main_balance||0)+' Br</td><td style="color:var(--blue);">'+(u.play_balance||0)+' Br</td><td>'+(u.games_played||0)+'</td><td style="color:var(--yellow);">'+(u.games_won||0)+'</td><td>'+(u.referral_count||0)+'</td><td><span class="badge '+sc+'">'+(u.status||'active')+'</span></td><td><button class="btn btn-ghost btn-sm" onclick="openUserModal('+u.user_id+')">View</button></td></tr>';}).join('');}
 
 /* ══════════════════════════════════════════
-   AGENTS — NEW SECTION
+   ✅ AGENTS — UPDATED (NO APPROVAL/PROMOTE)
 ══════════════════════════════════════════ */
 var currentAgentPeriod='week';
 
@@ -956,29 +987,19 @@ function setAgentPeriod(p){
 }
 
 async function loadAgents(){
-  // Try API first
   var data=await apiFetch('/api/admin/agents?period='+currentAgentPeriod);
   var agents=(data&&data.agents)?data.agents:generateMockAgents();
   allAgents=agents;
 
-  // Stats
   var totalAgents=agents.filter(function(a){return a.is_agent;}).length;
   var qualified=agents.filter(function(a){return a.referral_count>=30&&a.referral_depositors>=20&&a.referral_volume>=3000;}).length;
   var totalComm=agents.reduce(function(s,a){return s+(a.commission_earned||0);},0);
   var pendingGive=agents.filter(function(a){return a.is_agent&&!a.commission_paid;}).reduce(function(s,a){return s+(a.commission_earned||0);},0);
 
-  setText('ag-total',totalAgents);
-  setText('ag-qualified',qualified);
-  setText('ag-commission',totalComm.toFixed(0)+' Br');
-  setText('ag-pending-give',pendingGive.toFixed(0)+' Br');
+  setText('ag-total',totalAgents);setText('ag-qualified',qualified);setText('ag-commission',totalComm.toFixed(0)+' Br');setText('ag-pending-give',pendingGive.toFixed(0)+' Br');
 
-  // Sort by commission earned descending (ranking)
   var ranked=agents.filter(function(a){return a.is_agent;}).sort(function(a,b){return (b.commission_earned||0)-(a.commission_earned||0);});
   renderAgentTable(ranked);
-
-  // Non-agents who qualify
-  var qualifying=agents.filter(function(a){return !a.is_agent&&a.referral_count>=30&&a.referral_depositors>=20&&a.referral_volume>=3000;});
-  renderQualifyTable(qualifying);
 }
 
 function generateMockAgents(){
@@ -986,26 +1007,18 @@ function generateMockAgents(){
     {user_id:7627811244,first_name:'Abebe',phone:'0911234567',referral_count:87,referral_depositors:54,referral_volume:12400,commission_earned:1240,commission_paid:false,is_agent:true},
     {user_id:2345678901,first_name:'Marta',phone:'0944567890',referral_count:62,referral_depositors:40,referral_volume:8900,commission_earned:890,commission_paid:true,is_agent:true},
     {user_id:3456789012,first_name:'Yonas',phone:'0955678901',referral_count:45,referral_depositors:31,referral_volume:5600,commission_earned:560,commission_paid:false,is_agent:true},
-    {user_id:4567890123,first_name:'Tigist',phone:'0966789012',referral_count:110,referral_depositors:72,referral_volume:18700,commission_earned:1870,commission_paid:false,is_agent:true},
-    // Qualifying but not yet agent
-    {user_id:9876543210,first_name:'Dawit',phone:'0933456789',referral_count:35,referral_depositors:22,referral_volume:3800,commission_earned:380,commission_paid:false,is_agent:false},
-    {user_id:8765432109,first_name:'Hanna',phone:'0977890123',referral_count:41,referral_depositors:28,referral_volume:4200,commission_earned:420,commission_paid:false,is_agent:false},
+    {user_id:4567890123,first_name:'Tigist',phone:'0966789012',referral_count:110,referral_depositors:72,referral_volume:18700,commission_earned:1870,commission_paid:false,is_agent:true}
   ];
 }
 
-function reqBar(val,target,color){
-  var pct=Math.min(100,Math.round((val/target)*100));
-  var cls=pct>=100?'done':'partial';
-  return '<div class="req-bar"><span style="font-size:11px;font-weight:700;color:'+(pct>=100?'var(--green)':'var(--orange)')+';">'+val+'</span><div class="req-bar-track"><div class="req-bar-fill '+cls+'" style="width:'+pct+'%"></div></div><span style="font-size:10px;color:var(--muted);">'+target+'</span></div>';
-}
+function reqBar(val,target,color){var pct=Math.min(100,Math.round((val/target)*100));var cls=pct>=100?'done':'partial';return '<div class="req-bar"><span style="font-size:11px;font-weight:700;color:'+(pct>=100?'var(--green)':'var(--orange)')+';">'+val+'</span><div class="req-bar-track"><div class="req-bar-fill '+cls+'" style="width:'+pct+'%"></div></div><span style="font-size:10px;color:var(--muted);">'+target+'</span></div>';}
 
 function renderAgentTable(agents){
   var tbody=document.getElementById('agent-tbody');
   if(!agents.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted);">No agents yet</td></tr>';return;}
   var medals=['🥇','🥈','🥉'];
   tbody.innerHTML=agents.map(function(a,i){
-    var rank=i<3?medals[i]:(i+1);
-    var rankCls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    var rank=i<3?medals[i]:(i+1);var rankCls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
     var qualifies=a.referral_count>=30&&a.referral_depositors>=20&&a.referral_volume>=3000;
     var qualBadge=qualifies?'<span class="badge green">✅ Active</span>':'<span class="badge red">❌ Below Req</span>';
     var paidBadge=a.commission_paid?'<span class="badge green" style="font-size:9px;">Paid</span>':'<span class="badge yellow" style="font-size:9px;">Pending</span>';
@@ -1021,68 +1034,16 @@ function renderAgentTable(agents){
       +'<td>'+qualBadge+'</td>'
       +'<td style="display:flex;gap:4px;flex-wrap:wrap;">'
         +'<button class="btn btn-ghost btn-sm" onclick="openUserModal('+a.user_id+')">👤</button>'
-        +(!a.commission_paid?'<button class="btn btn-green btn-sm" onclick="markCommissionPaid('+a.user_id+')">💰 Pay</button>':'')
-        +'<button class="btn btn-red btn-sm" onclick="removeAgent('+a.user_id+')">Remove</button>'
+        // ✅ Removed Pay and Promote buttons. Admin can still revoke if needed.
+        +'<button class="btn btn-red btn-sm" onclick="removeAgent('+a.user_id+')">🚫 Revoke</button>'
       +'</td>'
       +'</tr>';
   }).join('');
 }
 
-function renderQualifyTable(users){
-  var tbody=document.getElementById('qualify-tbody');
-  if(!users.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No qualifying users found</td></tr>';return;}
-  tbody.innerHTML=users.map(function(u){
-    var estComm=Math.round(u.referral_volume*0.1);
-    return '<tr>'
-      +'<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+u.user_id+'</td>'
-      +'<td style="font-weight:600;">'+u.first_name+'</td>'
-      +'<td style="font-family:\'Space Mono\',monospace;">'+u.phone+'</td>'
-      +'<td style="color:var(--green);">'+u.referral_count+' ✅</td>'
-      +'<td style="color:var(--blue);">'+u.referral_depositors+' ✅</td>'
-      +'<td style="color:var(--orange);">'+u.referral_volume+' Br ✅</td>'
-      +'<td><div class="commission-chip">💰 '+estComm+' Br</div></td>'
-      +'<td><button class="btn btn-purple btn-sm" onclick="promoteAgent('+u.user_id+')">⬆️ Promote Agent</button></td>'
-      +'</tr>';
-  }).join('');
-}
+async function removeAgent(userId){if(!confirm('Revoke agent status from this user?'))return;await apiFetch('/api/admin/mark_agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,is_agent:false,admin:currentUser.username})});var u=allUsers.find(function(x){return x.user_id===userId;});if(u)u.is_agent=false;toast('Agent status revoked','warning');addLog('REMOVE_AGENT','User '+userId,'agent','');loadAgents();}
 
-async function promoteAgent(userId){
-  if(!confirm('Promote this user to Agent?'))return;
-  await apiFetch('/api/admin/mark_agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,is_agent:true,admin:currentUser.username})});
-  var u=allUsers.find(function(x){return x.user_id===userId;});if(u)u.is_agent=true;
-  toast('⬆️ User promoted to Agent!','success');
-  addLog('PROMOTE_AGENT','User '+userId,'','agent');
-  loadAgents();
-}
-
-async function removeAgent(userId){
-  if(!confirm('Remove agent status from this user?'))return;
-  await apiFetch('/api/admin/mark_agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,is_agent:false,admin:currentUser.username})});
-  var u=allUsers.find(function(x){return x.user_id===userId;});if(u)u.is_agent=false;
-  toast('Agent status removed','warning');
-  addLog('REMOVE_AGENT','User '+userId,'agent','');
-  loadAgents();
-}
-
-async function markCommissionPaid(userId){
-  if(!confirm('Mark commission as PAID for this agent?'))return;
-  await apiFetch('/api/admin/mark_commission_paid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,period:currentAgentPeriod,admin:currentUser.username})});
-  var a=allAgents.find(function(x){return x.user_id===userId;});if(a)a.commission_paid=true;
-  toast('✅ Commission marked as paid!','success');
-  addLog('COMMISSION_PAID','Agent '+userId,'pending','paid');
-  loadAgents();
-}
-
-function exportAgents(){
-  var agents=allAgents.filter(function(a){return a.is_agent;});
-  if(!agents.length){toast('No agent data to export','warning');return;}
-  var csv='Rank,UserID,Name,Phone,Invites,Depositors,Volume(Br),Commission(Br),Paid\n';
-  agents.sort(function(a,b){return (b.commission_earned||0)-(a.commission_earned||0);}).forEach(function(a,i){
-    csv+=(i+1)+','+a.user_id+','+a.first_name+','+a.phone+','+a.referral_count+','+a.referral_depositors+','+a.referral_volume+','+a.commission_earned+','+(a.commission_paid?'Yes':'No')+'\n';
-  });
-  downloadCSV(csv,'agent_rankings_'+currentAgentPeriod+'.csv');
-  toast('Agent rankings exported!','success');
-}
+function exportAgents(){var agents=allAgents.filter(function(a){return a.is_agent;});if(!agents.length){toast('No agent data to export','warning');return;}var csv='Rank,UserID,Name,Phone,Invites,Depositors,Volume(Br),Commission(Br),Paid\n';agents.sort(function(a,b){return (b.commission_earned||0)-(a.commission_earned||0);}).forEach(function(a,i){csv+=(i+1)+','+a.user_id+','+a.first_name+','+a.phone+','+a.referral_count+','+a.referral_depositors+','+a.referral_volume+','+a.commission_earned+','+(a.commission_paid?'Yes':'No')+'\n';});downloadCSV(csv,'agent_rankings_'+currentAgentPeriod+'.csv');toast('Agent rankings exported!','success');}
 
 /* ══ USER MODAL ══ */
 function openUserModal(userId){
@@ -1112,7 +1073,7 @@ function openUserModal(userId){
   actHtml+='<button class="btn btn-red" onclick="banUser('+userId+')">'+(u.status==='banned'?'🔓 Unban':'🚫 Ban')+'</button>';
   if(isSuper) actHtml+='<button class="btn btn-ghost" onclick="freezeUser('+userId+')">❄️ Freeze</button>';
   if(isSuper) actHtml+='<button class="btn btn-ghost" style="color:var(--yellow);border-color:var(--yellow);" onclick="markVIP('+userId+')">⭐ Mark VIP</button>';
-  if(isSuper) actHtml+='<button class="btn btn-purple" onclick="promoteAgent('+userId+')" style="color:#000;">'+(u.is_agent?'Remove Agent':'⬆️ Make Agent')+'</button>';
+  // ✅ Removed Promote Agent Button
   actHtml+='</div></div>';
   document.getElementById('modal-actions').innerHTML=actHtml;
   document.getElementById('user-modal').classList.add('open');
@@ -1125,24 +1086,13 @@ async function freezeUser(userId){toast('Account frozen','warning');addLog('FREE
 async function markVIP(userId){var u=allUsers.find(function(x){return x.user_id===userId;});if(!u)return;u.is_vip=!u.is_vip;await apiFetch('/api/admin/mark_vip',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,vip:u.is_vip,admin:currentUser.username})});toast(u.is_vip?'⭐ Marked as VIP':'VIP removed','success');addLog('MARK_VIP','User '+userId,'',u.is_vip);closeModal();renderUsers(allUsers);}
 
 /* ══ RANKINGS ══ */
-async function loadRankings(cat,period){
-  currentRankCat=cat;currentRankPeriod=period;
-  var titles={deposit:'Top Depositors',invite:'Top Inviters',games:'Most Games Played',wins:'Most Wins'};
-  setText('rank-title',titles[cat]||'Rankings');
-  ['dep','inv','gam','win'].forEach(function(k){var b=document.getElementById('rbtn-'+k);if(b)b.className='btn btn-ghost';});
-  var map={deposit:'dep',invite:'inv',games:'gam',wins:'win'};
-  var ab=document.getElementById('rbtn-'+map[cat]);if(ab)ab.className='btn btn-orange';
-  var data=await apiFetch('/api/admin/rankings?cat='+cat+'&period='+period);
-  var rows=(data&&data.rankings)?data.rankings:generateMockRankings(cat);
-  var medals=['🥇','🥈','🥉'];
-  document.getElementById('rank-tbody').innerHTML=rows.map(function(r,i){var cls=i<3?['gold','silver','bronze'][i]:'';var medal=i<3?medals[i]:(i+1);return '<tr><td><span class="rank-num '+cls+'">'+medal+'</span></td><td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+(r.user_id||'—')+'</td><td>'+(r.first_name||r.name||'—')+'</td><td style="font-family:\'Space Mono\',monospace;">'+(r.phone||'—')+'</td><td style="font-weight:700;color:var(--orange);">'+(r.value||r.total||0)+(cat==='deposit'?' Br':'')+'</td><td><button class="btn btn-ghost btn-sm" onclick="openUserModal('+(r.user_id||0)+')">View</button></td></tr>';}).join('');
-}
+async function loadRankings(cat,period){currentRankCat=cat;currentRankPeriod=period;var titles={deposit:'Top Depositors',invite:'Top Inviters',games:'Most Games Played',wins:'Most Wins'};setText('rank-title',titles[cat]||'Rankings');['dep','inv','gam','win'].forEach(function(k){var b=document.getElementById('rbtn-'+k);if(b)b.className='btn btn-ghost';});var map={deposit:'dep',invite:'inv',games:'gam',wins:'win'};var ab=document.getElementById('rbtn-'+map[cat]);if(ab)ab.className='btn btn-orange';var data=await apiFetch('/api/admin/rankings?cat='+cat+'&period='+period);var rows=(data&&data.rankings)?data.rankings:generateMockRankings(cat);var medals=['🥇','🥈','🥉'];document.getElementById('rank-tbody').innerHTML=rows.map(function(r,i){var cls=i<3?['gold','silver','bronze'][i]:'';var medal=i<3?medals[i]:(i+1);return '<tr><td><span class="rank-num '+cls+'">'+medal+'</span></td><td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+(r.user_id||'—')+'</td><td>'+(r.first_name||r.name||'—')+'</td><td style="font-family:\'Space Mono\',monospace;">'+(r.phone||'—')+'</td><td style="font-weight:700;color:var(--orange);">'+(r.value||r.total||0)+(cat==='deposit'?' Br':'')+'</td><td><button class="btn btn-ghost btn-sm" onclick="openUserModal('+(r.user_id||0)+')">View</button></td></tr>';}).join('');}
 function generateMockRankings(cat){var names=['Abebe','Chaltu','Dawit','Marta','Yonas','Tigist','Kebede','Almaz','Girma','Hanna'];return names.map(function(n,i){return {user_id:1000000+i,first_name:n,phone:'091'+i+'000000',value:Math.round(Math.random()*5000+1000)};});}
 function reloadRankings(){loadRankings(currentRankCat,document.getElementById('rank-period').value);}
 function exportRankings(){var rows=document.querySelectorAll('#rank-tbody tr');var csv='Rank,UserID,Name,Phone,Value\n';rows.forEach(function(tr,i){var tds=tr.querySelectorAll('td');if(tds.length>=5)csv+=(i+1)+','+tds[1].textContent+','+tds[2].textContent+','+tds[3].textContent+','+tds[4].textContent+'\n';});downloadCSV(csv,'rankings_'+currentRankCat+'_'+currentRankPeriod+'.csv');toast('Rankings exported!','success');}
 
 /* ══ ADMIN LOGS ══ */
-function loadLogs(){var el=document.getElementById('logs-list');if(!adminLogs.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">No actions logged yet this session.</div>';return;}var icons={APPROVE_DEPOSIT:'✅',REJECT_DEPOSIT:'❌',APPROVE_WITHDRAWAL:'✅',REJECT_WITHDRAWAL:'❌',ADD_MAIN:'➕',ADD_PLAY:'➕',REMOVE_MAIN:'➖',REMOVE_PLAY:'➖',BAN_USER:'🚫',UNBAN_USER:'🔓',FREEZE_USER:'❄️',MARK_VIP:'⭐',MANUAL_CALL:'📞',SET_MAX_WINNERS:'🏆',PAUSE_GAME:'⏸',CANCEL_GAME:'✕',CLEAR_BOARD:'🗑️',PROMOTE_AGENT:'🤝',REMOVE_AGENT:'❌',COMMISSION_PAID:'💰'};el.innerHTML=adminLogs.map(function(log){return '<div class="log-row"><div class="log-icon">'+(icons[log.action]||'📋')+'</div><div class="log-info"><div class="log-action">'+log.action.replace(/_/g,' ')+'</div><div class="log-detail">'+log.admin+' → '+log.target+(log.next?' → '+log.next:'')+'</div></div><div class="log-time">'+new Date(log.time).toLocaleTimeString()+'</div></div>';}).join('');}
+function loadLogs(){var el=document.getElementById('logs-list');if(!adminLogs.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">No actions logged yet this session.</div>';return;}var icons={APPROVE_DEPOSIT:'✅',REJECT_DEPOSIT:'❌',APPROVE_WITHDRAWAL:'✅',REJECT_WITHDRAWAL:'❌',ADD_MAIN:'➕',ADD_PLAY:'➕',REMOVE_MAIN:'➖',REMOVE_PLAY:'➖',BAN_USER:'🚫',UNBAN_USER:'🔓',FREEZE_USER:'❄️',MARK_VIP:'⭐',MANUAL_CALL:'📞',MANUAL_CALL_20:'📞',SET_MAX_WINNERS:'🏆',PAUSE_GAME:'⏸',CANCEL_GAME:'✕',CLEAR_BOARD:'🗑️',REMOVE_AGENT:'❌'};el.innerHTML=adminLogs.map(function(log){return '<div class="log-row"><div class="log-icon">'+(icons[log.action]||'📋')+'</div><div class="log-info"><div class="log-action">'+log.action.replace(/_/g,' ')+'</div><div class="log-detail">'+log.admin+' → '+log.target+(log.next?' → '+log.next:'')+'</div></div><div class="log-time">'+new Date(log.time).toLocaleTimeString()+'</div></div>';}).join('');}
 
 /* ══ SETTINGS ══ */
 async function saveSettings(){var settings={card_timer:document.getElementById('s-timer').value,ball_interval:document.getElementById('s-interval').value,prize_delay:document.getElementById('s-prize-delay').value,max_cards:document.getElementById('s-max-cards').value,card_price:document.getElementById('s-card-price').value,min_deposit:document.getElementById('s-min-dep').value,min_withdrawal:document.getElementById('s-min-wit').value,house_take:document.getElementById('s-house').value,deposit_bonus:document.getElementById('s-bonus').value,referral_commission:document.getElementById('s-ref').value,agent_min_invites:document.getElementById('s-agent-inv').value,agent_min_deposits:document.getElementById('s-agent-dep').value,agent_min_volume:document.getElementById('s-agent-vol').value};await apiFetch('/api/admin/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:settings,admin:currentUser.username})});toast('✅ Settings saved!','success');addLog('SAVE_SETTINGS','System','','');}
