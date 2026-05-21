@@ -1082,7 +1082,18 @@ function closeModal(){document.getElementById('user-modal').classList.remove('op
 
 async function adjustBalance(userId,type){var amt=parseInt(document.getElementById('modal-amount').value);if(isNaN(amt)||amt<=0){toast('Enter a valid amount','warning');return;}var endpoint='/api/admin/'+type+'_balance';await apiFetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,amount:amt,admin:currentUser.username})});var u=allUsers.find(function(x){return x.user_id===userId;});if(u){if(type==='add_main')u.main_balance=(u.main_balance||0)+amt;else if(type==='remove_main')u.main_balance=Math.max(0,(u.main_balance||0)-amt);else if(type==='add_play')u.play_balance=(u.play_balance||0)+amt;else if(type==='remove_play')u.play_balance=Math.max(0,(u.play_balance||0)-amt);}toast(type.replace('_',' ').toUpperCase()+' '+amt+' Br','success');addLog(type.toUpperCase()+'_BALANCE','User '+userId,'old',amt);closeModal();renderUsers(allUsers);}
 async function banUser(userId){var u=allUsers.find(function(x){return x.user_id===userId;});if(!u)return;var action=u.status==='banned'?'unban':'ban';if(!confirm((action==='ban'?'Ban':'Unban')+' this user?'))return;await apiFetch('/api/admin/'+action+'_user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,admin:currentUser.username})});u.status=action==='ban'?'banned':'active';toast('User '+(action==='ban'?'banned':'unbanned'),action==='ban'?'error':'success');addLog((action==='ban'?'BAN':'UNBAN')+'_USER','User '+userId,'','');closeModal();renderUsers(allUsers);}
-async function freezeUser(userId){toast('Account frozen','warning');addLog('FREEZE_USER','User '+userId,'active','frozen');closeModal();}
+async function freezeUser(userId){
+  var u=allUsers.find(function(x){return x.user_id===userId;});
+  if(!u)return;
+  var isFrozen=u.status==='frozen';
+  if(!confirm((isFrozen?'Unfreeze':'Freeze')+' this user?'))return;
+  var ep=isFrozen?'/api/admin/unfreeze_user':'/api/admin/freeze_user';
+  await apiFetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})});
+  u.status=isFrozen?'active':'frozen';
+  toast(isFrozen?'User unfrozen':'❄️ Frozen','warning');
+  addLog('FREEZE_USER','User '+userId,'',u.status);
+  closeModal();renderUsers(allUsers);
+}
 async function markVIP(userId){var u=allUsers.find(function(x){return x.user_id===userId;});if(!u)return;u.is_vip=!u.is_vip;await apiFetch('/api/admin/mark_vip',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,vip:u.is_vip,admin:currentUser.username})});toast(u.is_vip?'⭐ Marked as VIP':'VIP removed','success');addLog('MARK_VIP','User '+userId,'',u.is_vip);closeModal();renderUsers(allUsers);}
 
 /* ══ RANKINGS ══ */
