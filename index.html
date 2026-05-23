@@ -1012,25 +1012,24 @@ function generateMockGames(){
 }
 function renderGameHistory(rows){
   document.getElementById('gh-tbody').innerHTML=rows.map(function(r){
-    var bet=r.bet||r.card_price||r.stake||10;
-    var players=r.players||r.cards||r.total_cards||0;
-    var total=r.total||(players*bet);
-    var profit=r.profit||Math.round(total*0.20);
-    var payout=r.payout||(total-profit);
-    var rawStatus=r.status||r.game_status||'';
-    var statusLower=String(rawStatus).toLowerCase();
-    var statusClass=statusLower==='running'?'blue':'green';
-    var statusLabel=statusLower==='running'?'Running':'Completed';
+    var players = r.players || 0;
+    var total   = r.total_income || r.total || 0;
+    var payout  = r.payout || 0;
+    var profit  = r.profit || Math.round(total * 0.20);
+    var bet     = (players > 0 && total > 0) ? Math.round(total / players) : 10;
+    var winners = r.winners || 1;
+    var statusLabel = (profit === 0 && payout === 0) ? 'Running' : 'Completed';
+    var statusClass = statusLabel === 'Running' ? 'blue' : 'green';
     return '<tr>'
       +'<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+r.game_id+'</td>'
       +'<td>'+players+'</td>'
-      +'<td style="color:var(--yellow);">'+(r.winners||1)+'</td>'
+      +'<td style="color:var(--yellow);">'+winners+'</td>'
       +'<td style="color:var(--blue);">'+bet+' Br</td>'
       +'<td style="font-weight:700;">'+total+' Br</td>'
       +'<td style="color:var(--green);">'+payout+' Br</td>'
       +'<td style="color:var(--orange);font-weight:700;">'+profit+' Br</td>'
       +'<td><span class="badge '+statusClass+'">'+statusLabel+'</span></td>'
-      +'<td style="font-size:11px;color:var(--muted);">'+(r.date||r.created_at||'').split('T')[0]+'</td>'
+      +'<td style="font-size:11px;color:var(--muted);">'+(r.date||'').split('T')[0]+'</td>'
       +'</tr>';
   }).join('');
 }
