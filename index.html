@@ -767,7 +767,7 @@ if(localStorage.getItem('theme')==='light'){document.body.classList.add('light-t
 /* ══ LOGIN ══ */
 function doLogin(){
   var u=document.getElementById('login-user').value.trim();
-  var p=document.getElementById('login-pass').value;
+  var p=document.getElementById('login-pass').value.trim();
   var errEl=document.getElementById('login-err');
   errEl.style.display='none';
   var cred=ADMIN_CREDENTIALS[u];
