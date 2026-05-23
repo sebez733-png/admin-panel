@@ -971,26 +971,67 @@ async function loadGameHistory(){
   var data=await apiFetch('/api/admin/game_history');
   var rows=(data&&data.games)?data.games:generateMockGames();
   allGameHistory=rows;
-  setText('gh-today',rows.length);setText('gh-week',rows.length);setText('gh-month',rows.length);
-  var rev=0;rows.forEach(function(r){rev+=r.total||0;});setText('gh-revenue',rev+' Br');
+
+  setText('gh-today',rows.length);
+  setText('gh-week',rows.length);
+  setText('gh-month',rows.length);
+
+  var rev=0;
+  rows.forEach(function(r){
+    var bet=r.bet||r.card_price||r.stake||10;
+    var players=r.players||r.cards||r.total_cards||0;
+    var total=r.total||(players*bet);
+    rev+=total;
+  });
+  setText('gh-revenue',rev+' Br');
+
   renderGameHistory(rows);
 }
 function generateMockGames(){
-  var games=[];var statuses=['Completed','Running','Completed','Completed'];
+  var games=[];
+  var statuses=['Completed','Completed','Running','Completed'];
   for(var i=1;i<=10;i++){
-    var players=Math.round(Math.random()*20+5);
-    var bet=i%3===0?20:10; // Mix of 10 and 20 birr
-    var total=players*bet;
+    var cards=Math.round(Math.random()*20+5);
+    var bet=(i%3===0)?20:10;
+    var total=cards*bet;
     var profit=Math.round(total*0.20);
     var payout=total-profit;
-    games.push({game_id:'GAME_'+String(i).padStart(3,'0'),players:players,winners:1,bet:bet,total:total,payout:payout,profit:profit,status:statuses[i%4],date:new Date().toISOString()});
+    games.push({
+      game_id:'GAME_'+String(i).padStart(3,'0'),
+      players:cards,
+      winners:1,
+      bet:bet,
+      total:total,
+      payout:payout,
+      profit:profit,
+      status:statuses[i%4],
+      date:new Date().toISOString()
+    });
   }
   return games;
 }
 function renderGameHistory(rows){
   document.getElementById('gh-tbody').innerHTML=rows.map(function(r){
-    var statusClass=r.status==='Running'?'blue':'green';
-    return '<tr><td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+r.game_id+'</td><td>'+r.players+'</td><td style="color:var(--yellow);">'+(r.winners||1)+'</td><td style="color:var(--blue);">'+(r.bet||10)+' Br</td><td style="font-weight:700;">'+(r.total||0)+' Br</td><td style="color:var(--green);">'+(r.payout||0)+' Br</td><td style="color:var(--orange);font-weight:700;">'+(r.profit||0)+' Br</td><td><span class="badge '+statusClass+'">'+r.status+'</span></td><td style="font-size:11px;color:var(--muted);">'+(r.date||'').split('T')[0]+'</td></tr>';
+    var bet=r.bet||r.card_price||r.stake||10;
+    var players=r.players||r.cards||r.total_cards||0;
+    var total=r.total||(players*bet);
+    var profit=r.profit||Math.round(total*0.20);
+    var payout=r.payout||(total-profit);
+    var rawStatus=r.status||r.game_status||'';
+    var statusLower=String(rawStatus).toLowerCase();
+    var statusClass=statusLower==='running'?'blue':'green';
+    var statusLabel=statusLower==='running'?'Running':'Completed';
+    return '<tr>'
+      +'<td style="font-family:\'Space Mono\',monospace;font-size:11px;">'+r.game_id+'</td>'
+      +'<td>'+players+'</td>'
+      +'<td style="color:var(--yellow);">'+(r.winners||1)+'</td>'
+      +'<td style="color:var(--blue);">'+bet+' Br</td>'
+      +'<td style="font-weight:700;">'+total+' Br</td>'
+      +'<td style="color:var(--green);">'+payout+' Br</td>'
+      +'<td style="color:var(--orange);font-weight:700;">'+profit+' Br</td>'
+      +'<td><span class="badge '+statusClass+'">'+statusLabel+'</span></td>'
+      +'<td style="font-size:11px;color:var(--muted);">'+(r.date||r.created_at||'').split('T')[0]+'</td>'
+      +'</tr>';
   }).join('');
 }
 function filterGameHistory(){
